@@ -1,0 +1,93 @@
+# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
+  - name: Download and install Boost
+  # You may pin to the exact commit or the version.
+  # uses: MarkusJx/install-boost@51b5604fed63e1e8f76d4b564002e9e7cdcce63a
+  uses: MarkusJx/install-boost@v2.4.5
+  with:
+    # The boost version to install, e.g. "1.73.0"
+    boost_version: 
+    # The toolset used to compile boost, e.g. "msvc"
+    toolset: # optional, default is 
+    # The platform version boost was compiled on, e.g. "18.04"
+    platform_version: # optional, default is 
+    # Whether the boost libraries are linked statically or dynamically
+    link: # optional, default is 
+    # The architecture the binaries were built for
+    arch: # optional, default is x86
+    # The dirctory to install boost into
+    boost_install_dir: # optional, default is 
+    # Wheter to use actions/cache to improve build times
+    cache: # optional, default is true
+
+  - name: Setup OpenCV 4
+  # You may pin to the exact commit or the version.
+  # uses: TralahM/setup-opencv-action@6f7770c6898f7b4113503f1b34c850645f6a07b0
+  uses: TralahM/setup-opencv-action@v1.2
+  with:
+    # OpenCV version to be installed.
+    opencv-version: # default is 4.0.0
+    # If opencv-contrib (extra modules) should be included in the instalation.
+    opencv-extra-modules: # optional, default is true
+    # If dependencies should be installed as well.
+    install-deps: # optional, default is true
+    # 
+    CMAKE_BUILD_TYPE: # optional, default is RELEASE
+    # 
+    CMAKE_CXX_COMPILER: # optional, default is g++
+    # 
+    CMAKE_INSTALL_PREFIX: # optional, default is /usr/local
+    # 
+    WITH_TBB: # optional, default is true
+    # 
+    WITH_IPP: # optional, default is true
+    # 
+    BUILD_NEW_PYTHON_SUPPORT: # optional
+    # 
+    WITH_V4L: # optional
+    # 
+    ENABLE_PRECOMPILED_HEADERS: # optional, default is true
+    # 
+    INSTALL_C_EXAMPLES: # optional
+    # 
+    INSTALL_PYTHON_EXAMPLES: # optional
+    # 
+    BUILD_EXAMPLES: # optional
+    # 
+    WITH_QT: # optional
+    # 
+    WITH_OPENGL: # optional
+    # 
+    GENERATE_PKGCONFIG: # optional
+
+
+name: CMake on a single platform
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+

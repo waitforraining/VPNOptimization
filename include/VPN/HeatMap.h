@@ -28,22 +28,23 @@ namespace ViewPointNetwork
 		~HeatMap() {};
 
 		double getCell() const { return m_cell; }
-		void setCell(double c) { m_cell = c; }
-		int getXLen() const { return m_width; }
-		int setXLen(int xLen) { m_width = xLen; }
-		int getYLen() const { return m_height; }
-		int setYLen(int yLen) { m_height = yLen; }
-
 		double getValue(int indx, int indy) const;
-		void setValue(int indx, int indy, double v);
 		double getValue(double x, double y) const;
-		void setValue(double x, double y, double v);
 		double getValue(const Point2D& p) const;
+
+		int getXLen() const { return m_width; }
+		int getYLen() const { return m_height; }
+
+		void setCell(double c) { m_cell = c; }
+		void setXLen(int xLen) { m_width = xLen; }
+		void setYLen(int yLen) { m_height = yLen; }
+		void setValue(int indx, int indy, double v);
+		void setValue(double x, double y, double v);
 		void setValue(const Point2D& p, double v);
 
 		void generate(House& house, double r_min, double r_max, double scoreThresh = 1.0);
 		void generateOneEdgeHeat(House& house, Edge2D& edge, double r_min,double r_max);
-		cv::Mat HeatMap::getGRAYImg();
+		cv::Mat getGRAYImg();
 		
 		void normalization(House, std::vector<std::vector<int>>);
 

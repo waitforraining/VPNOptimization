@@ -7,8 +7,6 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-#include "HeatMap.h"
-
 #include "Point2D.h"
 #include "Edge2D.h"
 #include "House.h"

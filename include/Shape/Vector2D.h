@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "Point2D.h"
+
 namespace ViewPointNetwork
 {
 	class Point2D;

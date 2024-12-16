@@ -293,8 +293,7 @@ namespace ViewPointNetwork
 
 				for (size_t k = 0; k < denseEdges.size(); k++) {
 					if (denseEdges[k].Overlap(curEdge).Length() != 0 &&
-						denseEdges[k].isInValidArea(curStation, curStation.GetRadiusMin(),
-							curStation.GetRadiusMax())) 
+						curStation.isInValidArea(denseEdges[k])) 
 					{
 						mm.push_back(denseEdges[k]);
 						m_scanMat[i][k] = true;
@@ -535,7 +534,7 @@ namespace ViewPointNetwork
 				if (m_scanMat[ind][k])
 					scanCnt++;
 			}
-			cout << ind << " " << scanCnt <<" "<<  m_stationNet.getStation(ind).X() << " " << m_stationNet.getStation(ind).Y() << endl;
+			//cout << ind << " " << scanCnt <<" "<<  m_stationNet.getStation(ind).X() << " " << m_stationNet.getStation(ind).Y() << endl;
 			if (scanCnt < maxScanCnt) continue;
 			
 			if (scanCnt > maxScanCnt)

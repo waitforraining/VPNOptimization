@@ -6,9 +6,6 @@
 
 namespace ViewPointNetwork
 {
-	class Point2D;
-	class Vector2D;
-
 	class Line2D
 	{
 	public:

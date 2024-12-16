@@ -8,7 +8,6 @@
 
 #include "Edge2D.h"
 
-
 namespace ViewPointNetwork
 {
 	class BSPNode

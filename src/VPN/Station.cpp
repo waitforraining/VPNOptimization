@@ -3,6 +3,7 @@
 using namespace std;
 
 #include "Station.h"
+#include "BSPNode.h"
 
 namespace ViewPointNetwork
 {
@@ -12,8 +13,8 @@ namespace ViewPointNetwork
 		m_scanedLen = 0.0;
 		m_scanedScore = 0.0;
 		m_scanedFin = false;
-		m_r1 = 0.0;
-		m_r2 = 0.0;
+		m_rMin = 0.0;
+		m_rMax = 0.0;
 		m_maxScanedAngle = 0.0;
 	}
 
@@ -23,8 +24,8 @@ namespace ViewPointNetwork
 		m_scanedLen = 0;
 		m_scanedScore = 0;
 		m_scanedFin = false;
-		m_r1 = r_min;
-		m_r2 = r_max;
+		m_rMin = r_min;
+		m_rMax = r_max;
 		m_maxScanedAngle = 0.0;
 	}
 
@@ -34,8 +35,8 @@ namespace ViewPointNetwork
 		m_scanedLen = 0;
 		m_scanedScore = 0;
 		m_scanedFin = false;
-		m_r1 = r_min;
-		m_r2 = r_max;
+		m_rMin = r_min;
+		m_rMax = r_max;
 		m_maxScanedAngle = 0.0;
 	}
 
@@ -124,7 +125,7 @@ namespace ViewPointNetwork
 		std::vector<Edge2D> vecEdges = constructStationCircle();
 
 		//scanned edges
-		for each (const auto & var in m_edgeScanned)
+		for(const auto & var : m_edgeScanned)
 			vecEdges.push_back(var.second);
 
 		//WriteEdges2LineTop(vecEdges, name + ".top");
@@ -386,8 +387,7 @@ namespace ViewPointNetwork
 
 		for (auto itr = m_edgeScanned.begin(); itr != m_edgeScanned.end(); itr++) {
 			if (itr->second.Length() == 0.0) continue;
-			scoreTem = itr->second.getScore(*this, m_r1, m_r2);
-			//scoreTem = itr->second.getScore(*this, m_r1);
+			scoreTem = getScore(itr->second);
 			score += scoreTem;
 
 #ifdef _DEBUG
@@ -459,8 +459,8 @@ namespace ViewPointNetwork
 				if (overlapEdge.Length() == 0.0) continue;
 
 				overlapLen += overlapEdge.Length();
-				overlapAng0 += overlapEdge.getScore(s0, s0.GetRadiusMin(), s0.GetRadiusMax());
-				overlapAng1 += overlapEdge.getScore(s1, s1.GetRadiusMin(), s1.GetRadiusMax());
+				overlapAng0 += s0.getScore(overlapEdge);
+				overlapAng1 += s1.getScore(overlapEdge);
 			}
 		}
 
@@ -478,4 +478,79 @@ namespace ViewPointNetwork
 		rst.push_back(score_intersect_ang);
 		return rst;
 	}
+
+	//考虑外盲区和内盲区
+	double Station::getScore(const Edge2D& e) const
+	{
+		// 视场角
+		double d = e.getLine2D().Distance(*this);
+		if (d >= m_rMax) {
+			return 0.0;
+		}
+		else if (d >= m_rMin) {
+			//直线与外圆交线
+			auto crosses = e.getLine2D().intersectCircle(m_x, m_y, m_rMax);
+			Edge2D circleEdge(crosses.first, crosses.second);
+			Edge2D overlapEdge = e.Overlap(circleEdge);
+
+			if (overlapEdge.Length() == 0.0)
+			{
+				return 0.0;
+			}
+
+			double overlapAngle = Angle2D(overlapEdge.getBegPoint(), *this, overlapEdge.getEndPoint());
+			return max(overlapAngle, 0.0);
+		}
+		else {
+			//直线与内圆交线
+
+			auto crosses_min = e.getLine2D().intersectCircle(m_x, m_y, m_rMin);
+			Edge2D circleEdge_min(crosses_min.first, crosses_min.second);
+
+			//直线与外圆交线
+			auto crosses_max = e.getLine2D().intersectCircle(m_x, m_y, m_rMax);
+			Edge2D circleEdge_max(crosses_max.first, crosses_max.second);
+
+			Edge2D overlapEdgeMax = e.Overlap(circleEdge_max);
+
+			if (overlapEdgeMax.Length() == 0.0) {
+				return 0.0;
+			}
+
+			double overlapAngleMax = Angle2D(overlapEdgeMax.getBegPoint(), *this, overlapEdgeMax.getEndPoint());
+			Edge2D overlapEdgeMin = e.Overlap(circleEdge_min);
+
+			if (overlapEdgeMin.Length() == 0.0) {
+				return overlapAngleMax;
+			}
+
+			double overlapAngleMin = Angle2D(overlapEdgeMin.getBegPoint(), *this, overlapEdgeMin.getEndPoint());
+			return max(overlapAngleMax - overlapAngleMin, 0.0);
+
+		}
+	}
+
+	bool Station::isInterArea(const Edge2D& e,double r) const
+	{
+		double d = e.getLine2D().Distance(*this);
+		if (d >= r) {
+			return false;
+		}
+		auto crosses_min = e.getLine2D().intersectCircle(m_x, m_y, r);
+		Edge2D circleEdge_min(crosses_min.first, crosses_min.second);
+
+		if (!circleEdge_min.isCover(*this)) {
+			return false;
+		}
+		else {
+			//看到部分也算补充边
+			return true;
+		}
+	}
+
+	bool Station::isInValidArea(const Edge2D& e) const
+	{
+		return !(isInterArea(e, m_rMin) || isInterArea(e, m_rMax));
+	}
+
 }

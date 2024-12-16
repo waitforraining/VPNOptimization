@@ -1,7 +1,6 @@
 #include <boost/program_options.hpp>
 
 #include "VpnOptimizerBySkeleton.h"
-#include "Edge2D.h"
 using namespace std;
 namespace VPN = ViewPointNetwork;
 

@@ -422,8 +422,8 @@ namespace ViewPointNetwork
 				if (overlapEdge.Length() == 0.0) continue;
 
 				overlapLen += overlapEdge.Length();
-				overlapAng0 += overlapEdge.getScore(s0, s0.GetRadiusMin(), s0.GetRadiusMax());
-				overlapAng1 += overlapEdge.getScore(s1, s1.GetRadiusMin(), s1.GetRadiusMax());
+				overlapAng0 += s0.getScore(overlapEdge);
+				overlapAng1 += s0.getScore(overlapEdge);
 			}
 		}
 

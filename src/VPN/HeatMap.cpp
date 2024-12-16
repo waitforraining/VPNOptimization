@@ -122,7 +122,7 @@ namespace ViewPointNetwork
 				{
 					if (scanedArea.second.isOverlap(edge, 0.1))
 					{
-						m_value[i][j] += scanedArea.second.getScore(s, r_min, r_max);
+						m_value[i][j] += s.getScore(scanedArea.second);
 					}
 				}
 				maxV = max(maxV, m_value[i][j]);
@@ -492,7 +492,7 @@ namespace ViewPointNetwork
 	void drawEdges(cv::Mat & figure, HeatMap & heat, const vector<Edge2D> & vecEdges, double cell,
 		const cv::Scalar & color, int thickness, int lineType, int shift, HouseType houseType)
 	{
-		for each (const Edge2D & e in vecEdges)
+		for(const Edge2D & e : vecEdges)
 			drawEdges(figure, heat, e, cell, color,
 				thickness, lineType, shift, houseType);
 	}
@@ -501,7 +501,7 @@ namespace ViewPointNetwork
 		const cv::Scalar & color, int thickness, int lineType, int shift,
 		HouseType houseType)
 	{
-		for each (const auto & v in vecNodes)
+		for(const auto & v : vecNodes)
 			drawEdges(figure, heat, v.getEdge(), cell, color,
 				thickness, lineType, shift, houseType);
 	}
@@ -520,7 +520,7 @@ namespace ViewPointNetwork
 	void drawEdges(cv::Mat & figure,const vector<Edge2D> & vecEdges, double cell,
 		const cv::Scalar & color, int thickness, int lineType, int shift)
 	{
-		for each (const Edge2D & e in vecEdges)
+		for(const Edge2D & e : vecEdges)
 			drawEdges(figure,e, cell, color,
 				thickness, lineType, shift);
 	}
@@ -528,7 +528,7 @@ namespace ViewPointNetwork
 	void drawEdges(cv::Mat & figure, const vector<BSPNode> & vecNodes, double cell,
 		const cv::Scalar & color, int thickness, int lineType, int shift)
 	{
-		for each (const auto & v in vecNodes)
+		for(const auto & v : vecNodes)
 			drawEdges(figure, v.getEdge(), cell, color,
 				thickness, lineType, shift);
 	}
@@ -539,7 +539,7 @@ namespace ViewPointNetwork
 		assert(cell != 0);
 		cv::Point s;
 
-		for each (const auto & v in vecStations)
+		for(const auto & v : vecStations)
 		{
 			s = cv::Point(v.X() / cell, v.Y() / cell);
 			auto p = s + Point(1, 0);
@@ -557,6 +557,7 @@ namespace ViewPointNetwork
 		for (int i = 0; i < stations.size(); i++)
 		{
 			auto scanArea = stations[i].getScanedEdges();
+		
 			for (auto c = scanArea.begin(); c != scanArea.end(); c++)
 			{
 				cv::line(figure, cv::Point(c->second.getBegPoint().X() / cell, figure.rows - c->second.getBegPoint().Y() / cell),

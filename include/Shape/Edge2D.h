@@ -10,13 +10,10 @@
 
 #include "Line2D.h"
 #include "Point2D.h"
+#include "Vector2D.h"
 
 namespace ViewPointNetwork
 {
-	class BSPNode;
-	class Station;
-	class Line2D;
-
 	class Edge2D
 	{
 	public:
@@ -45,15 +42,11 @@ namespace ViewPointNetwork
 		bool isVertical(double err = M_PI * 5.0 / 180.0) const;
 		bool isHorizontal(double err = M_PI * 5.0 / 180.0) const;
 
-		bool isInInterBlindArea(const Station& s, double r_min) const;
-		bool isInOuterBlindArea(const Station& s, double r_max) const;
-		bool isInValidArea(const Station& s, double r_min, double r_max) const;
 
 		std::vector<Point2D> densify(double step, bool withEndPnts = true) const;
 		std::vector<Point2D> densify(int nStep, bool withEndPnts = true) const;
 		Point2D getCrossPoint(const Edge2D& e) const;
 		
-
 		bool isOverlap(const Edge2D& e, double distErr = 0.0001) const;
 		Edge2D Overlap(const Edge2D& e, double distErr = 0.0001) const;
 		Edge2D Extend(const Edge2D& e, double distErr) const;
@@ -66,18 +59,10 @@ namespace ViewPointNetwork
 		bool isCover(const Edge2D& e) const;
 
 		std::map<Edge2D, bool> getOverlapEdgeSegs(const Edge2D& e, double err = 0.0001) const;
-		std::map<Edge2D, bool> getValidScanedEdges(const Station& s, double r_min, double r_max) const;
 
 		double ScalarBegin() const;
 		double ScalarEnd() const;
 		double Scalar(const Point2D& p) const;
-
-	public:
-		//TODO,以下函数应该迁移到其它类里，或者删除
-		double* getLine() const;
-		double getScore(const Station& s) const;
-		double getScore(const Station& s, double r1) const;
-		double getScore(const Station& s, double r_min, double r_max) const;
 
 	private:
 		Point2D m_begPnt, m_endPnt;

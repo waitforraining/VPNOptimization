@@ -7,10 +7,9 @@
 #include <list>
 #include <map>
 
-#include "BSPNode.h"
-#include "Edge2D.h"
-#include "Vector2D.h"
 #include "Point2D.h"
+#include "Edge2D.h"
+#include "BSPNode.h"
 #include "VPNTypeDefinition.h"
 
 namespace ViewPointNetwork
@@ -25,10 +24,10 @@ namespace ViewPointNetwork
 
 	public:
 		void scan(std::shared_ptr<BSPNode> bspNode);
-		void SetRadiusMin(double r) { m_r1 = r; }
-		void SetRadiusMax(double r) { m_r2 = r; }
-		double GetRadiusMin() const { return m_r1; }
-		double GetRadiusMax() const { return m_r2; }
+		void SetRadiusMin(double r) { m_rMin = r; }
+		void SetRadiusMax(double r) { m_rMax = r; }
+		double GetRadiusMin() const { return m_rMin; }
+		double GetRadiusMax() const { return m_rMax; }
 
 		bool operator ==(const Station& s) const;
 	public:
@@ -59,13 +58,19 @@ namespace ViewPointNetwork
 		void computeScanLength();
 		void mergeOnlineScanEdge();
 
+	public:
+		double getScore(const Edge2D& e) const;
+
+		bool isInterArea(const Edge2D& e,double r) const;
+		bool isInValidArea(const Edge2D& s) const;
+
 	private:
 		double m_scanedLen, m_scanedScore, m_smallestAng, m_maxOverlap;
 		std::vector<double> m_dist2Edge;
 		std::map<std::vector<double>, Edge2D> m_edgeScanned;
 		bool m_scanedFin;
-		double m_r1; //scan radius
-		double m_r2;
+		double m_rMin; //scan radius
+		double m_rMax;
 		double m_maxScanedAngle;
 	};
 

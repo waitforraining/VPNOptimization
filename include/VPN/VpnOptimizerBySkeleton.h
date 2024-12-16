@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <unordered_set>
-
+#include <map>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include "Edge2D.h"

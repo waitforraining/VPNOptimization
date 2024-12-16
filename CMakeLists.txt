@@ -2,12 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(VPNOptimization)
 
-set(CMAKE_CXX_COMPILER "D:/codesoft/vs2019/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x86/cl.exe")  
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(OpenCV_DIR "D:/code/bycode/opencv-4.1.2/build1")
-set(Boost_DIR "D:/code/bycode/boost_1_71_0/build/lib/cmake/Boost-1.71.0")
 
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)

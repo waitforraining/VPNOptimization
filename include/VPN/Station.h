@@ -12,6 +12,7 @@
 #include "Edge2D.h"
 #include "BSPNode.h"
 #include "VPNTypeDefinition.h"
+#include "Vector2D.h"
 
 namespace ViewPointNetwork
 {

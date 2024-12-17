@@ -50,7 +50,7 @@ namespace ViewPointNetwork
 
 	void House::initializeBspTree()
 	{
-		m_bspRoot = shared_ptr<BSPNode>(buildBspTree(m_edges, 0));
+		m_bspRoot = shared_ptr<BSPNode>(buildBspTree(m_edges, 0),deleteNode);
 	}
 
 	int House::getNearstEdgeInd(const Point2D & p) const

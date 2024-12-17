@@ -13,7 +13,8 @@
 #include "BSPNode.h"
 #include "VPNTypeDefinition.h"
 #include "Vector2D.h"
-#include "IO/io.h"
+#include "io.h"
+
 
 namespace ViewPointNetwork
 {

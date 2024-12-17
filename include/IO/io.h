@@ -5,7 +5,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-
+#include <memory>
 
 #include "Edge2D.h"
 #include "Point2D.h"

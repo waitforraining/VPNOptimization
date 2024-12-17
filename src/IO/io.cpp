@@ -1,4 +1,3 @@
-#pragma once
 #include "IO/io.h"
 using namespace std;
 using namespace ViewPointNetwork;

@@ -37,7 +37,7 @@ jobs:
         # branch to checkout default is 4.x
         branch: 4.x # default is 4.x
         # List of feature to compile, the less features you select the smallest will be the image.
-        BUILD_LIST: core,imgproc,imgcodecs,videoio
+        BUILD_LIST: core,imgproc,imgcodecs,videoio,highgui
         # redude the size of the image by removing samples and tests. 
     - name: test
       run: tree /home/runner/work/test/build -L 2

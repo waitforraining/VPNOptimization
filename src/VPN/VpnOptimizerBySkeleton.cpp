@@ -862,7 +862,6 @@ namespace ViewPointNetwork
 	void VpnOptimizerBySkeleton::drawWholeHouse(const string& outresultpath, double scalar,
 		int resultType, int distType, int markSize) const
 	{
-		if (resultType == 0) return;
 		//展示初始站点房屋图
 		cv::Mat heatRgbScore = cv::imread(outresultpath + "_RGBheat.png", cv::IMREAD_COLOR);
 		if (heatRgbScore.empty()) {
@@ -879,7 +878,7 @@ namespace ViewPointNetwork
 		drawStations(figure, m_sklGraph, m_stations, m_heatMap.getCell(), 5);
 
 		stringstream ss;
-		ss << setprecision(3)   << "E:\\DataSet\\s3d\\result\\"
+		ss << setprecision(3)   
 			<< outresultpath 
 			<< "-t" << m_param.houseType
 			<< "-c" << m_param.cell

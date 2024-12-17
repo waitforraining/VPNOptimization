@@ -28,6 +28,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include/Test
     ${PROJECT_SOURCE_DIR}/include/Utils
     ${PROJECT_SOURCE_DIR}/include/VPN
+    ${PROJECT_SOURCE_DIR}/include/IO
 )
 
 message( 111 ${OpenCV_LIBS})

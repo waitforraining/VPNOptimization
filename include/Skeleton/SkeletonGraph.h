@@ -4,7 +4,7 @@
 #include <stack>
 #include <random>
 #include <functional>
-
+#incluse <set>
 #include <opencv2/opencv.hpp>
 
 #include "House.h"

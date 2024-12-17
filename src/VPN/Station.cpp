@@ -53,7 +53,7 @@ namespace ViewPointNetwork
 		return abs(X() - s.X()) < 1e-5 && abs(Y() - s.Y()) < 1e-5;
 	}
 
-	void Station::scan(std::shared_ptr<BSPNode> root)
+	void Station::scan(BSPNode* root)
 	{
 		traversal(root);
 		mergeOnlineScanEdge();
@@ -61,31 +61,11 @@ namespace ViewPointNetwork
 		computeScanLength();
 	}
 
-	double Station::getEdgeDist(const Edge2D& edge, bool real) const
-	{
-		double d = 0.0;
-
-		if (real)
-			d = edge.getLine2D().Distance(*this);
-		else
-			d = edge.distance(*this);
-
-		return d;
-	}
-
-	//添加站点到某边的距离
-	void Station::addEdgeDist(double d)
-	{
-		m_dist2Edge.push_back(d);
-	}
-
-	//
 	double Station::getScanLen() const
 	{
 		return m_scanedLen;
 	}
 
-	//获取站点扫描最小角
 	double Station::getSmallestAng() const
 	{
 		return m_smallestAng;
@@ -127,8 +107,7 @@ namespace ViewPointNetwork
 		//scanned edges
 		for(const auto & var : m_edgeScanned)
 			vecEdges.push_back(var.second);
-
-		//WriteEdges2LineTop(vecEdges, name + ".top");
+		sWriteEdges(name, vecEdges);
 		return true;
 	}
 
@@ -138,11 +117,6 @@ namespace ViewPointNetwork
 		vector<double> theta;
 		theta.push_back(Vector2D(*this, edge.getBegPoint()).getTheta());
 		theta.push_back(Vector2D(*this, edge.getEndPoint()).getTheta());
-		//for (int i = 0; i < 2; i++)
-		//{
-		//	Vector2D v = Vector2D(*this, edge.getEndpoint(i));
-		//	theta.push_back(v.getTheta());
-		//}
 
 		if (abs(theta[0] - theta[1]) > M_PI)
 		{
@@ -155,9 +129,7 @@ namespace ViewPointNetwork
 			a2.push_back(2 * M_PI);
 
 			vector<vector<double>> angle;
-			//if (a1[0] != a1[1]) angle.push_back(a1);
 			angle.push_back(a1);
-			//if (a2[0] != a2[1]) angle.push_back(a2);
 			angle.push_back(a2);
 
 			return angle;
@@ -169,14 +141,13 @@ namespace ViewPointNetwork
 			a.push_back(max(theta[0], theta[1]));
 
 			vector<vector<double>> angle;
-			//if (a[0] != a[1]) angle.push_back(a);
 			angle.push_back(a);
 			return angle;
 		}
 	}
 
 	//获取站点对扫描到的边区域
-	map<vector<double>, Edge2D> Station::getScanedEdges() const
+	const map<vector<double>, Edge2D>& Station::getScanedEdges() const
 	{
 		return m_edgeScanned;
 	}
@@ -239,43 +210,16 @@ namespace ViewPointNetwork
 	//通过扫描角计算扫描到的某条边的临界点（即边的一小段）
 	Point2D Station::getPoint(const Edge2D& edge, double theta) const
 	{
-		vector<Point2D> vecPnts;
-		vecPnts.push_back(edge.getBegPoint());
-		vecPnts.push_back(edge.getEndPoint());
+		Line2D line0(-cos(theta), sin(theta), sin(theta) * m_x - cos(theta) * m_y);
+		Line2D line1 = edge.getLine2D();
+		
+		double err = 0.001 * M_PI / 180.0;
+		if (Angle2Lines(line0, line1) < err)// parallel
+			return edge.getBegPoint();
 
-		for (int i = 0; i < 2; i++)
-		{
-			Vector2D v = Vector2D(*this, vecPnts[i]);
-			if (abs(theta - v.getTheta()) < 1e-5)
-			{
-				//point[0] = vecPnts[i].X();
-				//point[1] = vecPnts[i].Y();
-				return vecPnts[i];
-			}
-		}
-
-		double x, y;
-		if (edge.isVertical())
-		{
-			x = edge.getBegPoint().X();
-			y = tan(theta) * (x - m_x) + m_y;
-		}
-		else if (edge.isHorizontal())
-		{
-			y = edge.getBegPoint().Y();
-			x = (y - m_y) / tan(theta) + m_x;
-		}
-		else
-		{
-			double tmp1 = tan(theta) * m_x - m_y + edge.getBegPoint().Y();
-			double tmp2 = tan(theta) * m_x - m_y + edge.getEndPoint().Y();
-			double tmp3 = edge.getEndPoint().X() - edge.getBegPoint().X();
-			double tmp4 = edge.getBegPoint().Y() - edge.getEndPoint().Y();
-			x = (edge.getEndPoint().X() * tmp1 - edge.getBegPoint().X() * tmp2) / (tmp3 * tan(theta) + tmp4);
-			y = tan(theta) * (x - m_x) + m_y;
-		}
-
-		return Point2D(x, y);
+		Point2D crossPnt;
+		Intersection2NonParallelLines(line0, line1, crossPnt);
+		return crossPnt;
 	}
 
 
@@ -297,7 +241,6 @@ namespace ViewPointNetwork
 			while (scanIt != m_edgeScanned.end() && scanIt->first[0] <= curAngle[1])
 			{
 				auto scanAngle = scanIt->first;
-				
 				if (scanAngle[0] - curAngle[0] > 1e-5)
 				{
 					tmpAngle[0] = curAngle[0];
@@ -402,7 +345,7 @@ namespace ViewPointNetwork
 		m_scanedScore = score;
 	}
 
-	void Station::traversal(std::shared_ptr<BSPNode> root)
+	void Station::traversal(BSPNode* root)
 	{
 		if (!root || m_scanedFin)
 			return;

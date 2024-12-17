@@ -73,7 +73,7 @@ namespace ViewPointNetwork
 		}
 	}
 
-	std::shared_ptr<BSPNode> buildBspTree(const std::vector<Edge2D>& edges, int partition, const std::string& name)
+	BSPNode* buildBspTree(const std::vector<Edge2D>& edges, int partition, const std::string& name)
 	{
 		if (edges.empty())
 			return nullptr;
@@ -81,7 +81,7 @@ namespace ViewPointNetwork
 		const Edge2D& nodeEdge = edges[partition];
 		std::vector<Edge2D> frontLines, backLines;
 		partitionEdge(edges, nodeEdge, frontLines, backLines);
-		std::shared_ptr<BSPNode> newNode = make_shared<BSPNode>(edges[partition]);
+		BSPNode* newNode = new BSPNode(edges[partition]);
 
 		newNode->setName(name);
 		newNode->frontNode = buildBspTree(frontLines, frontLines.size() / 2, name + "f");

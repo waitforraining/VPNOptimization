@@ -1,5 +1,4 @@
 #include "VpnOptimizerBySkeleton.h"
-#define comment_char '#'
 
 using namespace std;
 namespace ViewPointNetwork
@@ -34,110 +33,12 @@ namespace ViewPointNetwork
 		m_houseName = "000";
 	}
 	
-
-	void readPointsFromObjpts(std::string objptsPath, vector<Point2D>& points)
-	{
-		std::ifstream inputFile(objptsPath);
-
-		string line;
-		std::getline(inputFile, line);
-		int tmp;
-		double x, y;
-		while (std::getline(inputFile, line)) {
-			if (line[0] == '#') {
-				continue;  // 跳过以#开头的行
-			}
-			std::istringstream iss(line);
-			if (iss >> tmp >> x >> y) {
-				points.emplace_back(x, y);
-			}
-		}
-		inputFile.close();
-	}
-
-	void readEdge(std::string objptsPath, std::string lineTopPath, vector<Edge2D>& edges) 
-	{
-
-		vector<Point2D> points;
-		readPointsFromObjpts(objptsPath, points);
-		std::ifstream inputFile(lineTopPath);
-		if (!inputFile || points.empty())
-		{
-			return;
-		}
-		string line;
-		std::getline(inputFile, line);
-		int lineNumber, pointNums, attributeNums;
-		int tmp;
-		int ind0, ind1;
-		while (std::getline(inputFile, line)) {
-			if (line[0] == '#') {
-				continue;  // 跳过以#开头的行
-			}
-			std::istringstream iss(line);
-			if (iss >> lineNumber >> pointNums >> attributeNums) {
-				for (int i = 0; i < attributeNums; i++)
-				{
-					inputFile >> tmp >> tmp;
-				}
-				inputFile >> ind0 >> ind1;
-				edges.emplace_back(points[ind0], points[ind1]);
-			}
-		}
-		inputFile.close();
-	}
-
-	void writeEdge(std::string path, vector<Edge2D>& edges)
-	{
-		FILE* fp;                                    
-
-		if ((fp = fopen(string(path + ".objpts").c_str(), "w")) == NULL)
-			return ;
-
-		/*------ Print the headers in the database file --------------------------*/
-		fprintf(fp, "%d # file identifier\n", 702);
-		fprintf(fp, O_CONTENTS_H, comment_char);
-		fprintf(fp, NUMBER_H, comment_char, (int)edges.size() * 2);
-		fprintf(fp, O_EXPL_H, comment_char, comment_char);
-		fprintf(fp, O_LINE_H, comment_char);
-
-		for (int i = 0; i < edges.size(); i++)
-		{
-			auto p0 = edges[i].getBegPoint();
-			fprintf(fp, O_FORMAT, i * 2, p0.X(), p0.Y(), 0.0,
-				0,0,0,0,0,0);
-			p0 = edges[i].getEndPoint();
-			fprintf(fp, O_FORMAT, i * 2 + 1, p0.X(), p0.Y(), 0.0,
-				0, 0, 0, 0, 0, 0);
-		}
-			
-		fclose(fp);
-
-		ofstream out(path + ".top", ios::out);
-		out << 716 << " # file ID" << "\n";
-		out << "# Line topology database :" << "\n";
-		out << "# Number of lines :" << "\t" << edges.size() << "\n";
-		out << "# Line number" << "   \\   " << "Number of points" << "   \\   " << "Number of attributes" << "\n";
-		out << "# Attributes Tag number" << "   \\   " << "Attribute value" << "\n";
-		out << "# Point numbers" << "\n";
-		out << "# -----------------------------------------------------------------------------------------------------------" << "\n";
-
-
-		for (int i = 0; i < edges.size() * 2; i += 2)
-		{
-			out << i << "\t" << 2 << "\t" << 0 << "\n";
-			out << i << "\t" << i + 1 << "\n";
-		}
-
-		out.close();
-	}
-
 	VpnOptimizerBySkeleton::VpnOptimizerBySkeleton(const std::string& houseName, const OptSkelParam& param)
 	{
 		m_param = param;
 		m_houseName = houseName;
 		//readEdge(houseName + "_move_min.objpts", houseName + "_move_min.top" ,m_vecEdges);
-		readEdge(houseName + ".objpts", houseName + ".top" ,m_vecEdges);
+		sReadEdges(houseName, m_vecEdges);
 		//writeEdge("test", m_vecEdges);
 	}
 
@@ -210,7 +111,7 @@ namespace ViewPointNetwork
 			std::cout << "获取单个站点扫描最多边数：" << maxScanCnt << "    剩余未扫描边数：" << m_unScanedCnt << endl;
 			std::cout << "当前优化站点数：" << m_usedStationInds.size() << endl;
 		}
-
+		
 		
 		if (m_house.getType() == HT_Outdoor) {
 			//计算路径和连通矩阵
@@ -232,11 +133,19 @@ namespace ViewPointNetwork
 	{
 		cout << "构建热力图..." << endl;
 		m_heatMap = HeatMap(m_house, m_param.cell);
-		m_heatMap.generate(m_house,
-			m_param.stationRadiusMin, m_param.stationRadiusMax, m_param.scoreThresh);
 
-		m_heatMap.saveBGR_YellowOrange(m_house, m_houseName, false);
-		m_heatMap.saveGRAY(m_house, m_houseName);
+		
+
+		if (!m_heatMap.loadGrayImg(m_houseName + "_" + to_string(m_param.cell) + "_GRAYheat.png"))
+		{
+			// not use cache
+			m_heatMap.generate(m_house,
+				m_param.stationRadiusMin, m_param.stationRadiusMax, m_param.scoreThresh);
+
+			m_heatMap.saveBGR_YellowOrange(m_house, m_houseName, false);
+		}
+		m_heatMap.saveGRAY(m_house, m_houseName + "_123" + to_string(m_param.cell));
+
 	}
 
 
@@ -263,7 +172,8 @@ namespace ViewPointNetwork
 				m_param.stationRadiusMin,
 				m_param.stationRadiusMax);
 
-			s.scan(m_house.getBspRoot());
+			s.scan(m_house.getBspRoot().get());
+			s.wirteScannedEdges(to_string(i));
 			scanedStations.push_back(s);
 		}
 
@@ -282,7 +192,7 @@ namespace ViewPointNetwork
 		m_edgeScanned = vector<bool>(edgeCount, false);
 		m_unScanedCnt = edgeCount;
 		const auto& stations = m_stationNet.getStations();
-		vector<Edge2D> mm;
+		vector<Edge2D> mm,mm1;
 		
 		for (size_t i = 0; i < stations.size(); i++) {
 			const auto& curStation = stations[i];
@@ -291,6 +201,7 @@ namespace ViewPointNetwork
 			for (auto j = scannedEdges.begin(); j != scannedEdges.end(); j++) {
 				const auto& curEdge = j->second;
 
+				mm1.push_back(curEdge);
 				for (size_t k = 0; k < denseEdges.size(); k++) {
 					if (denseEdges[k].Overlap(curEdge).Length() != 0 &&
 						curStation.isInValidArea(denseEdges[k])) 
@@ -301,7 +212,11 @@ namespace ViewPointNetwork
 				}
 			}
 		}
-		writeEdge("scan", mm);
+		stations[0].wirteScannedEdges("test");
+		stations[3].wirteScannedEdges("test3");
+
+		sWriteEdges("scanned", mm1);
+		sWriteEdges("denseScanned", mm);
 	}
 
 	void VpnOptimizerBySkeleton::doOptimize()
@@ -364,7 +279,7 @@ namespace ViewPointNetwork
 			Station s(connectStation.Y() * m_heatMap.getCell(),
 				(1.0 * m_heatMap.getYLen() - connectStation.X()) * m_heatMap.getCell(),
 				r_min, r_max);
-			s.scan(m_house.getBspRoot());
+			s.scan(m_house.getBspRoot().get());
 			m_stationNet.addStation(s);
 			pq.emplace(i, m_sklGraph.getJointNum() - 1);
 			pq.emplace(j, m_sklGraph.getJointNum() - 1);

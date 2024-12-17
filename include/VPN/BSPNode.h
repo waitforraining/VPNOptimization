@@ -15,6 +15,7 @@ namespace ViewPointNetwork
 	public:
 		BSPNode();
 		BSPNode(const Edge2D&);
+		BSPNode(Edge2D&);
 		~BSPNode() {};
 
 		const Edge2D& getEdge() const;
@@ -22,8 +23,8 @@ namespace ViewPointNetwork
 		std::string getName();
 		double getminScan() { return m_minScan; };
 
-		std::shared_ptr<BSPNode> frontNode;
-		std::shared_ptr<BSPNode> backNode;
+		BSPNode* frontNode;
+		BSPNode* backNode;
 	private:
 		std::string m_name; //遍历顺序 f fb fbb fbbf fbbfb 以此累加
 		Edge2D m_edge;
@@ -31,7 +32,15 @@ namespace ViewPointNetwork
 		double m_minwall; 
 
 	};
-	std::shared_ptr<BSPNode> buildBspTree(const std::vector<Edge2D>& edage, int partition, const std::string& name = "r");
-
+	BSPNode* buildBspTree(const std::vector<Edge2D>& edage, int partition, const std::string& name = "r");
+	static void deleteNode(BSPNode* node) 
+	{
+		if (node) {
+			deleteNode(node->frontNode);
+			deleteNode(node->backNode);
+			delete node;
+			node = nullptr;
+		}
+	}
 }
 #endif

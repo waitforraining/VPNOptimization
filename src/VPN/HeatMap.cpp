@@ -24,6 +24,7 @@ namespace ViewPointNetwork
 		m_width = width;
 		m_value = vector<vector<double>>(m_width, vector<double>(m_height, 0.0));
 	}
+
 	HeatMap::HeatMap(const House& house, double cell)
 	{
 		m_width = std::ceil(house.getMaxX() / cell);
@@ -78,6 +79,30 @@ namespace ViewPointNetwork
 		setValue(p.X(), p.Y(), v);
 	}
 
+
+	bool HeatMap::loadGrayImg(const std::string& grayMapPath)
+	{
+		cv::Mat figure = cv::imread(grayMapPath, cv::IMREAD_GRAYSCALE);
+		double pi_2 = 2.0 * M_PI;
+		
+		if (figure.empty()) {
+			std::cerr << "Failed to load image" << std::endl;
+			return false;
+		}
+		cv::flip(figure, figure, 0);
+		// 遍历图像并还原 m_value
+		for (int i = 0; i < m_width; i++) {
+			for (int j = 0; j < m_height; j++) {
+				// 还原灰度值
+				double score = static_cast<double>(figure.at<uchar>(j, i)) / 255.0;
+
+				// 恢复 m_value[j][i]
+				m_value[i][j] = score * pi_2;
+			}
+		}
+		
+	}
+
 	void HeatMap::generate(House& house, double r_min, double r_max, double scoreThresh)
 	{
 		Station s;
@@ -90,16 +115,14 @@ namespace ViewPointNetwork
 				if (house.getType() == HT_Outdoor && ptType != PT_OUTSIDE ) continue;
 
 				s = Station(i * m_cell, j * m_cell, r_min, r_max);
-				s.scan(house.getBspRoot());
+				s.scan(house.getBspRoot().get());
 				m_value[i][j] = s.getScanedScore();
 
 				if (house.getType() == HT_Outdoor && m_value[i][j] <= scoreThresh) {
 					m_value[i][j] = 0;
 				}
 			}
-
 		}
-
 	}
 	// 对某一条边 生成热力图
 	void HeatMap::generateOneEdgeHeat(House& house, Edge2D& edge, double r_min, double r_max)
@@ -116,7 +139,7 @@ namespace ViewPointNetwork
 				if (house.getType() == HT_Outdoor && (house.position(i, j, m_cell) == PT_INSIDE || house.position(i, j, m_cell) == PT_ONWALL)) continue;
 
 				s = Station(i * m_cell, j * m_cell, r_min, r_max);
-				s.traversal(house.getBspRoot());
+				s.traversal(house.getBspRoot().get());
 
 				for (auto scanedArea : s.getScanedEdges())
 				{
@@ -284,59 +307,6 @@ namespace ViewPointNetwork
 		}
 	}
 
-	void HeatMap::saveBGR(House & house, const std::string & name, double scalar, bool station) const
-	{
-		Mat figure(m_height, m_width, CV_8UC3, Scalar(255, 255, 255));
-		double step = (1 - scalar) / 3;
-
-		for (int i = 0; i < m_height; i++) {
-			for (int j = 0; j < m_width; j++)
-			{
-				if (m_value[j][i] == -1)
-				{
-					figure.at<Vec3b>(i, j)[0] = 0;
-					figure.at<Vec3b>(i, j)[1] = 0;
-					figure.at<Vec3b>(i, j)[2] = 0;
-				}
-				else if (m_value[j][i] == 0)
-				{
-					figure.at<Vec3b>(i, j)[0] = 255;
-					figure.at<Vec3b>(i, j)[1] = 255;
-					figure.at<Vec3b>(i, j)[2] = 255;
-				}
-				else if (m_value[j][i] < scalar)
-				{
-					figure.at<Vec3b>(i, j)[0] = 255;
-					figure.at<Vec3b>(i, j)[1] = int(255 * (m_value[j][i]) / scalar);
-					figure.at<Vec3b>(i, j)[2] = 0;
-				}
-				else if (m_value[j][i] < scalar + step)
-				{
-					figure.at<Vec3b>(i, j)[0] = 255;
-					figure.at<Vec3b>(i, j)[1] = 255;
-					figure.at<Vec3b>(i, j)[2] = int(255 * (m_value[j][i] - scalar) / step);
-				}
-				else if (m_value[j][i] < scalar + 2 * step)
-				{
-					figure.at<Vec3b>(i, j)[0] = int(255 * (1 - (m_value[j][i] - (scalar + step)) / step));
-					figure.at<Vec3b>(i, j)[1] = 255;
-					figure.at<Vec3b>(i, j)[2] = 255;
-				}
-				else
-				{
-					figure.at<Vec3b>(i, j)[0] = 0;
-					figure.at<Vec3b>(i, j)[1] = int(255 * (1 - (m_value[j][i] - (scalar + 2 * step)) / step));
-					figure.at<Vec3b>(i, j)[2] = 255;
-				}
-			}
-		}
-
-		vector<Station> stations;
-		drawEdges(figure, house.getEdges(), m_cell, Scalar(0, 0, 0), 1);
-		cv::flip(figure, figure, 0); // 0 表示上下翻转
-		drawStation(figure, stations, m_cell, Scalar(0, 0, 0), 5, -1);
-		cv::imwrite(name + "_RGBheat.png", figure);
-	}
 
 	std::vector<cv::Vec3b> interpolateColors(const std::vector<cv::Vec3b>& colors, int steps)
 	{
@@ -391,8 +361,6 @@ namespace ViewPointNetwork
 		drawEdges(figure, *this, house.getEdges(), m_cell, Scalar(0, 0, 0), 1, house.getType());
 
 		cv::flip(figure, figure, 0); // 0 表示上下翻转
-		//if (station)
-			//drawStation(figure, {}, m_cell, Scalar(0, 0, 0), 5, -1);
 		cv::imwrite(name + "_RGBheat.png", figure);
 	}
 

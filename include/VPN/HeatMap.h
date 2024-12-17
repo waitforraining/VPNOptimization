@@ -41,6 +41,7 @@ namespace ViewPointNetwork
 		void setValue(double x, double y, double v);
 		void setValue(const Point2D& p, double v);
 
+		bool loadGrayImg(const std::string& grayMapPath);
 		void generate(House& house, double r_min, double r_max, double scoreThresh = 1.0);
 		void generateOneEdgeHeat(House& house, Edge2D& edge, double r_min,double r_max);
 		cv::Mat getGRAYImg();
@@ -51,7 +52,6 @@ namespace ViewPointNetwork
 			int num = 0, bool merge = false, int num1 = 0, int num2 = 0, 
 			std::vector<BSPNode> tmpEdge = std::vector<BSPNode>(), bool lineshow = false);
 
-		void saveBGR(House& house, const std::string& name, double scalar, bool station = false) const;
 		void saveBGR1(const House& house, const std::vector<cv::Vec3b>& colors, 
 			const std::string& name,
 			double scalar, bool station = false);

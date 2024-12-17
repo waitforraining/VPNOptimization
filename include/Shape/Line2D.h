@@ -118,8 +118,7 @@ namespace ViewPointNetwork
 
 		// Swap the normal direction
 		void SwapNormal();
-
-
+		friend bool Intersection2Lines(const Line2D& lin1, const Line2D& lin2, Point2D& pos);
 	protected:
 		double m_sinphi, m_cosphi;
 		double d;

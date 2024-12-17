@@ -48,23 +48,9 @@ namespace ViewPointNetwork
 		initializeBspTree();
 	}
 
-	bool House::initializeBspTree()
+	void House::initializeBspTree()
 	{
-		double minDist = std::numeric_limits<double>::max();
-		double d;
-		size_t ind = 0;
-		auto p = getCentre();
-		for (size_t i = 0; i < m_edges.size(); i++)
-		{
-			d = m_edges[i].distance(p);
-			if (d < minDist)
-			{
-				minDist = d;
-				ind = i;
-			}
-		}
-		m_bspRoot = buildBspTree(m_edges, ind);
-		return true;
+		m_bspRoot = shared_ptr<BSPNode>(buildBspTree(m_edges, 0));
 	}
 
 	int House::getNearstEdgeInd(const Point2D & p) const

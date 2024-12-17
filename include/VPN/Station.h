@@ -13,6 +13,7 @@
 #include "BSPNode.h"
 #include "VPNTypeDefinition.h"
 #include "Vector2D.h"
+#include "IO/io.h"
 
 namespace ViewPointNetwork
 {
@@ -25,7 +26,7 @@ namespace ViewPointNetwork
 		~Station() {};
 
 	public:
-		void scan(std::shared_ptr<BSPNode> bspNode);
+		void scan(BSPNode* bspNode);
 		void SetRadiusMin(double r) { m_rMin = r; }
 		void SetRadiusMax(double r) { m_rMax = r; }
 		double GetRadiusMin() const { return m_rMin; }
@@ -34,16 +35,14 @@ namespace ViewPointNetwork
 		bool operator ==(const Station& s) const;
 	public:
 		std::vector<std::vector<double>> getEdgeAngle(const Edge2D&) const;
-		std::map<std::vector<double>, Edge2D> getScanedEdges() const;
+		const std::map<std::vector<double>, Edge2D>& getScanedEdges() const;
+
 		double getOverlapPercent(const Station& s, OverlapScoreType ost = AVERAGE_LEN) const;//old one
 		std::vector<double> computeOverlap(const Station& s) const;//new one
-		
-		void addEdgeDist(double);
-		double getEdgeDist(const Edge2D&, bool real = false) const;
 		std::vector<double> getDist2Edge() const;
 		Point2D getPosition() const { return Point2D(X(), Y()); }
 		void initial();
-		void traversal(std::shared_ptr<BSPNode> root);
+		void traversal(BSPNode* root);
 
 		double getScanLen() const;
 		double getScanedScore() const;

@@ -15,6 +15,7 @@
 #include "StationNet.h"
 #include "HeatMap.h"
 #include "RidgeFilter.h"
+#include "IO/io.h"
 
 namespace ViewPointNetwork
 {
@@ -103,7 +104,7 @@ namespace ViewPointNetwork
 		
 		std::vector<std::vector<std::vector<int>>> m_stationPaths;
 		std::vector<std::vector<bool>> m_conMat;
-
+		
 		int m_unScanedCnt;
 		int m_groupInd;
 	};

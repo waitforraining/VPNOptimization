@@ -38,7 +38,7 @@ namespace ViewPointNetwork
 
 	private:
 		int getNearstEdgeInd(const Point2D& p) const;
-		bool initializeBspTree();
+		void initializeBspTree();
 	private:
 		std::vector<Edge2D> m_edges;
 		std::vector<Edge2D> m_denseEdges;

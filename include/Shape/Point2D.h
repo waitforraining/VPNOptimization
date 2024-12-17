@@ -46,6 +46,7 @@ namespace ViewPointNetwork
 	protected:
 		double m_x, m_y;
 	};
+	//the angle of a_p_b
 }
 
 #endif 

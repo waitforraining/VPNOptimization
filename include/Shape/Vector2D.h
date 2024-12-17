@@ -7,8 +7,6 @@
 
 namespace ViewPointNetwork
 {
-	class Point2D;
-
 	class Vector2D
 	{
 	protected:
@@ -60,13 +58,13 @@ namespace ViewPointNetwork
 		friend Point2D operator +(const Point2D& p, const Vector2D& v);
 		friend Point2D operator +(const Vector2D& v, const Point2D& p);
 
-		//the angle from vector v1 to vector v2
-		friend double Angle2D(const Vector2D &v1, const Vector2D &v2);
-		//the angle of a_p_b
-		friend double Angle2D(const Point2D& a, const Point2D& p, const Point2D& b);
 		friend std::istream& operator >> (std::istream& is, Vector2D& v);
 		friend std::ostream& operator << (std::ostream& os, const Vector2D& v);
 	};
+	//the angle from vector v1 to vector v2
+	double Angle2D(const Vector2D& v1, const Vector2D& v2);
+	double Angle2D(const Point2D& a, const Point2D& p, const Point2D& b);
+
 }
 
 #endif

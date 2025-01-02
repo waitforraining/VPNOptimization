@@ -1,6 +1,8 @@
 #define _USE_MATH_DEFINES
 
 using namespace std;
+#include <cmath>
+
 
 #include "Station.h"
 #include "BSPNode.h"
@@ -56,7 +58,7 @@ namespace ViewPointNetwork
 	void Station::scan(BSPNode* root)
 	{
 		traversal(root);
-		mergeOnlineScanEdge();
+		//mergeOnlineScanEdge();
 		computeScanAngle();
 		computeScanLength();
 	}
@@ -64,11 +66,6 @@ namespace ViewPointNetwork
 	double Station::getScanLen() const
 	{
 		return m_scanedLen;
-	}
-
-	double Station::getSmallestAng() const
-	{
-		return m_smallestAng;
 	}
 
 	std::vector<Edge2D> Station::constructStationCircle() const
@@ -93,22 +90,50 @@ namespace ViewPointNetwork
 		return rst;
 	}
 
-	bool Station::wirteScannedEdges(const std::string& prefix) const
+	void Station::writeScannedEdges(const std::string& prefix) const
 	{
-		std::stringstream ss;
-		ss << std::fixed << std::setprecision(2);
-		ss << prefix << X() << "_" << Y();
-		std::string name = ss.str();
-
-		//std::vector<Edge2D> vecEdges;
-		//station point
 		std::vector<Edge2D> vecEdges = constructStationCircle();
 
-		//scanned edges
 		for(const auto & var : m_edgeScanned)
 			vecEdges.push_back(var.second);
-		sWriteEdges(name, vecEdges);
-		return true;
+		sWriteEdges(prefix, vecEdges);
+	}
+
+	void Station::writeInResolutionEdges(const std::string& prefix, vector<Edge2D> denseEdges, double minScanAngle)
+	{
+		std::vector<Edge2D> vecEdges = constructStationCircle();
+
+		for (auto j = m_edgeScanned.begin(); j != m_edgeScanned.end(); j++) {
+			const auto& curEdge = j->second;
+
+			for (size_t k = 0; k < denseEdges.size(); k++) {
+
+				if (denseEdges[k].Overlap(curEdge).Length() > denseEdges[k].Length() * 0.9 &&
+					isInValidArea(denseEdges[k]) &&
+					isInValidResolutionArea(denseEdges[k], minScanAngle))
+				{
+					vecEdges.push_back(denseEdges[k]);
+				}
+			}
+		}
+
+		auto startEdge = m_edgeScanned.begin()->second;
+		auto endEdge = m_edgeScanned.rbegin()->second;
+		if (ParallelLines(startEdge.getLine2D(), endEdge.getLine2D(), 0.001 * M_PI / 180.0))
+		{
+			auto mergeEdge = startEdge + endEdge;
+			for (size_t k = 0; k < denseEdges.size(); k++) {
+
+				if (denseEdges[k].Overlap(mergeEdge).Length() > denseEdges[k].Length() * 0.9 &&
+					isInValidArea(denseEdges[k]) &&
+					isInValidResolutionArea(denseEdges[k], minScanAngle))
+				{
+					vecEdges.push_back(denseEdges[k]);
+				}
+			}
+		}
+
+		sWriteEdges(prefix, vecEdges);
 	}
 
 	//获取站点对边的扫描角度
@@ -316,16 +341,7 @@ namespace ViewPointNetwork
 	//获取某站点的对所有扫描边的得分总和
 	void Station::computeScanAngle()
 	{
-#ifdef _DEBUG
-		if (X() == 42.0 && Y() == 8.0)
-			wirteScannedEdges();
-
-		std::vector<double> vecAngles;
-		vecAngles.reserve(m_edgeScanned.size());
-#endif
-
 		double score = 0, scoreTem;
-		m_smallestAng = 180;
 		double angle;
 
 		for (auto itr = m_edgeScanned.begin(); itr != m_edgeScanned.end(); itr++) {
@@ -333,14 +349,7 @@ namespace ViewPointNetwork
 			scoreTem = getScore(itr->second);
 			score += scoreTem;
 
-#ifdef _DEBUG
-			vecAngles.push_back(180.0 * scoreTem / M_PI);
-#endif
-
-			//m_smallestAng = m_smallestAng < abs(itr->first[0] - itr->first[1]) ? m_smallestAng : abs(itr->first[0] - itr->first[1]);
 			angle = itr->first[1] - itr->first[0];
-			if (m_smallestAng > angle)
-				m_smallestAng = angle;
 		}
 		m_scanedScore = score;
 	}
@@ -493,7 +502,32 @@ namespace ViewPointNetwork
 
 	bool Station::isInValidArea(const Edge2D& e) const
 	{
-		return !(isInterArea(e, m_rMin) || isInterArea(e, m_rMax));
+		double s2Point0 = Point2D::distance(e.getBegPoint());
+		double s2Point1 = Point2D::distance(e.getEndPoint());
+		if (min(s2Point0, s2Point1) >= m_rMax) // 部分边
+			return false;
+		if (max(s2Point0, s2Point1) <= m_rMin)
+			return false;
+		
+		return true;
 	}
+	bool Station::isInValidResolutionArea(const Edge2D& e, double minPointDist) const
+	{
+		return true;
+		if (e.OnLine(*this, 1e-3)) return false;
+		Point2D projectPnt = e.getLine2D().Project(*this);
+		double scanAngle = 5.0 / 83 / 180 * M_PI;
+		double h = e.getLine2D().Distance(*this);
+		double A = tan(scanAngle);
+		double B = minPointDist / h * A;
+		double C = -A - minPointDist / h;
 
+		double discriminant = B * B - 4 * A * C;
+		double x1 = (-B + sqrt(discriminant)) / (2 * A);
+		double minScanAngle = abs(atan(x1));
+
+		double angle1 = atan2(projectPnt.distance(e.getBegPoint()), h);
+		double angle2 = atan2(projectPnt.distance(e.getEndPoint()), h);
+		return max(angle1, angle2) <= minScanAngle;
+	}
 }

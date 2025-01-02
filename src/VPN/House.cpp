@@ -20,7 +20,6 @@ namespace ViewPointNetwork
 		m_maxX = 0;
 		m_maxY = 0;
 		double x, y;
-		Point2D p1, p2;
 		m_edges = vecEdges;
 		for (const auto& edge : vecEdges)
 		{
@@ -41,16 +40,27 @@ namespace ViewPointNetwork
 		{
 			for (auto& edge : m_edges)
 			{
-				edge = Edge2D(p1 + Point2D(1.0 * m_maxX, 1.0 * m_maxY), p2 + Point2D(1.0 * m_maxX, 1.0 * m_maxY));
+				edge = Edge2D(edge.getBegPoint() + Point2D(1.0 * m_maxX, 1.0 * m_maxY), 
+					edge.getEndPoint() + Point2D(1.0 * m_maxX, 1.0 * m_maxY));
 			}
 		}
+		sWriteEdges("move_min", m_edges);
 
 		initializeBspTree();
 	}
-
+	void getBspEdges(vector<Edge2D>& edges,BSPNode* bspNode)
+	{
+		if (!bspNode) return;
+		edges.push_back(bspNode->getEdge());
+		getBspEdges(edges, bspNode->backNode);
+		getBspEdges(edges, bspNode->frontNode);
+	}
 	void House::initializeBspTree()
 	{
 		m_bspRoot = shared_ptr<BSPNode>(buildBspTree(m_edges, 0),deleteNode);
+		vector<Edge2D> edges;
+		getBspEdges(edges, m_bspRoot.get());
+		sWriteEdges("bsp", edges);
 	}
 
 	int House::getNearstEdgeInd(const Point2D & p) const

@@ -9,12 +9,12 @@ namespace ViewPointNetwork
 	{
 	public:
 		SkeletonJoint() ;
-		SkeletonJoint(int x, int y, JunctionType jt = JT_INIT);
+		SkeletonJoint(int x, int y, JunctionType jt = JunctionType::JT_INIT);
 		SkeletonJoint(const SkeletonJoint& rhv);
 		~SkeletonJoint();
 		int X() const;
 		int Y() const;
-		JunctionType getType() { return m_type; };
+		JunctionType getType() const { return m_type; };
 
 	public:
 		SkeletonJoint& operator=(const SkeletonJoint& rhv);

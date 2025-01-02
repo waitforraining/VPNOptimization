@@ -15,6 +15,7 @@ int main(int argc, char** argv)
 	VPN::VpnOptimizerBySkeleton optimizer(houseName, param);
 	optimizer.doOptimize();
 	optimizer.writeStation2Txt("refine2.txt");
+	optimizer.writeStation2HeilosXml("test.xml", "scene.xml#test", "D:\\platforms.xml#tripod", "D:\\scanners_tls.xml#faroFM70");
 
 	return 0;
 }

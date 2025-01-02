@@ -162,7 +162,7 @@ namespace ViewPointNetwork
 
 	bool Intersection2Lines(const Line2D & line0, const Line2D & line1, Point2D & p)
 	{
-		double err = 5.0 * M_PI / 180.0;
+		double err = 0.001 * M_PI / 180.0;
 		if (Angle2Lines(line0, line1) < err)// parallel
 			return false;
 

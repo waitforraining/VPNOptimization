@@ -3,7 +3,7 @@
 namespace ViewPointNetwork
 {
 	SkeletonJoint::SkeletonJoint() :
-		m_x(0), m_y(0), m_type(JT_INIT)
+		m_x(0), m_y(0), m_type(JunctionType::JT_INIT)
 	{
 	}
 

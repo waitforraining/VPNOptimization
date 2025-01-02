@@ -86,7 +86,7 @@ namespace ViewPointNetwork
 	void drawEdges(cv::Mat& figure, const std::vector<BSPNode>& vecNodes, double cell, const cv::Scalar& color,
 		int thickness = 1, int lineType = cv::LINE_8, int shift = 0);
 
-	void drawStation(cv::Mat& figure, const std::vector<Station>& vecStations, double cell,
+	void drawStations(cv::Mat& figure, const std::vector<Station>& vecStations, double cell,
 		const cv::Scalar& color, int radius, int thickness = 1, int lineType = cv::LINE_8, int shift = 0);
 
 	void drawHouseLines(cv::Mat& figure, const House& house, double cell);
@@ -95,8 +95,5 @@ namespace ViewPointNetwork
 		std::unordered_map<int, std::pair<int, int>> crossInd2Point);
 	void showAddEdges(cv::Mat& figure, House& house, std::vector<Edge2D> lineSegs,
 		std::vector<int> addEdgesId, double cell, cv::Scalar color);
-
-	void drawStations(cv::Mat& figure, const SkeletonGraph& sg, const std::vector<Station>& iStations, 
-		double cell, int radius);
 }
 #endif

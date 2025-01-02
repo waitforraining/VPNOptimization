@@ -75,8 +75,13 @@ namespace ViewPointNetwork
 		cv::Mat binary;
 		cv::threshold(image, binary, 0, 255, cv::THRESH_BINARY);
 
+		for (int i = 0; i < house.getEdges().size(); i++)
+			cv::line(binary, cv::Point(house.getEdge(i).getBegPoint().X() / heat.getCell(), binary.rows - house.getEdge(i).getBegPoint().Y() / heat.getCell()),
+				cv::Point(house.getEdge(i).getEndPoint().X() / heat.getCell(), binary.rows - house.getEdge(i).getEndPoint().Y() / heat.getCell()), cv::Scalar(0), 3);
+
 		// 在图像周围添加边界
 		cv::copyMakeBorder(binary, binary, border_size, border_size, border_size, border_size, cv::BORDER_CONSTANT, 0);
+		imwrite("binary.png", binary);
 
 		distType = 2;
 		markSize = 5;

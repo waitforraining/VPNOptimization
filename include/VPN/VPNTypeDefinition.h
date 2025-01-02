@@ -16,7 +16,7 @@ namespace ViewPointNetwork
 		RT_L2 = 2
 	};
 
-	enum JunctionType
+	enum class JunctionType
 	{
 		JT_INIT = 0,//初始骨架点
 		JT_PATHMID = 1,//最远点

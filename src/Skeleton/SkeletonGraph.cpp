@@ -35,7 +35,7 @@ namespace ViewPointNetwork
 		double sumY = 0;
 		int num = 0;
 		stack<SkeletonJoint> stackCross;
-		stackCross.emplace(x, y, JT_INIT);
+		stackCross.emplace(x, y, JunctionType::JT_INIT);
 		set<SkeletonJoint> setUsedCross;
 		SkeletonJoint current;
 
@@ -54,14 +54,14 @@ namespace ViewPointNetwork
 					if (nx >= 0 && ny >= 0 && nx < m_skeleton.rows && ny < m_skeleton.cols
 						&& m_skeleton.at<uchar>(nx, ny) == 255)
 					{
-						if (setUsedCross.count(SkeletonJoint(nx, ny, JT_INIT))) continue;
+						if (setUsedCross.count(SkeletonJoint(nx, ny, JunctionType::JT_INIT))) continue;
 						setUsedCross.emplace(nx, ny);
 
 						if (isCrossPnt(nx, ny))
 						{
 							sumX += nx;
 							sumY += ny;
-							stackCross.emplace(nx, ny, JT_INIT);
+							stackCross.emplace(nx, ny, JunctionType::JT_INIT);
 							num++;
 						}
 					}
@@ -88,7 +88,7 @@ namespace ViewPointNetwork
 		stack<SkeletonJoint> stPnts;
 		vector<SkeletonJoint> path;
 
-		stPnts.emplace(midCrossPnt.X(), midCrossPnt.Y(), JT_INIT);
+		stPnts.emplace(midCrossPnt.X(), midCrossPnt.Y(), JunctionType::JT_INIT);
 
 		int midX, midY;
 		int currentCrossInd = point2CrossInd[midCrossPnt];
@@ -100,7 +100,7 @@ namespace ViewPointNetwork
 			int cx = current.X();
 			int cy = current.Y();
 			if (!isCrossPnt(cx, cy))
-				path.emplace_back(cx, cy, JT_INIT);
+				path.emplace_back(cx, cy, JunctionType::JT_INIT);
 			bool pathFlag = true;
 			visited.at<uchar>(cx, cy) = 1;
 
@@ -127,7 +127,7 @@ namespace ViewPointNetwork
 						}
 						else
 						{
-							SkeletonJoint nextMidCrossPnt = SkeletonJoint(midX, midY, JT_INIT);
+							SkeletonJoint nextMidCrossPnt = SkeletonJoint(midX, midY, JunctionType::JT_INIT);
 
 							if (!point2CrossInd.count(nextMidCrossPnt))
 							{
@@ -222,62 +222,6 @@ namespace ViewPointNetwork
 		color_type.clear();
 	}
 
-	void SkeletonGraph::drawPath(Mat& figure) const
-	{
-		random_device rd;
-		mt19937 gen(rd());
-		uniform_int_distribution<> dis(75, 225);
-		//vector<Station> stations = m_house.getStations();
-
-		// 绘制路径并加粗
-		for (int i = 0; i < paths.size(); i++)
-		{
-			//Vec3b color(150, 150, 255); // 设置路径的颜色
-			Vec3b color(dis(gen), dis(gen), 225);
-			for (int j = i + 1; j < paths.size(); j++)
-			{
-				for (auto path : paths[i][j])
-				{
-					//if (isIsolate(i) || isIsolate(j)) continue;
-					//if (stations[i].isIsolate() || stations[j].isIsolate()) continue;
-					// 获取路径点的坐标
-					int x = path.X();
-					int y = path.Y();
-					//使路径加粗，通过在路径点周围添加像素
-					for (int dx = -1; dx <= 1; dx++) {
-						for (int dy = -1; dy <= 1; dy++) {
-							// 检查该点是否在图像内
-							if (x + dx >= 0 && x + dx < figure.rows && y + dy >= 0 && y + dy < figure.cols)
-							{
-								figure.at<Vec3b>(x + dx, y + dy) = color;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		// 绘制交叉点
-		for (int i = 0; i < m_skeleton.rows; i++)
-		{
-			for (int j = 0; j < m_skeleton.cols; j++)
-			{
-				int midX, midY;
-				if (isCrossPnt(i, j))
-				{
-					/*figure.at<Vec3b>(i, j)[0] = 0;
-					figure.at<Vec3b>(i, j)[2] = 0;*/
-
-					getMidCrossPnt(i, j, midX, midY);
-					figure.at<Vec3b>(midX, midY)[2] = 255;
-					figure.at<Vec3b>(midX, midY)[1] = 255;
-					figure.at<Vec3b>(midX, midY)[0] = 0;
-				}
-			}
-		}
-
-		// cv::imwrite("path2.png", figure); // 保存图像（可选）
-	}
 
 	cv::Mat SkeletonGraph::getSkeleton() const{
 		return m_skeleton;
@@ -408,7 +352,7 @@ namespace ViewPointNetwork
 			{
 				if (isMidCrossPnt(i, j))
 				{
-					SkeletonJoint midCrossPnt = SkeletonJoint(i, j, JT_INIT);
+					SkeletonJoint midCrossPnt = SkeletonJoint(i, j, JunctionType::JT_INIT);
 					int crossInd = point2CrossInd.size();
 					point2CrossInd[midCrossPnt] = crossInd;
 					crossInd2Point[crossInd] = midCrossPnt;
@@ -500,7 +444,7 @@ namespace ViewPointNetwork
 
 				if (maxDist > threshold && maxIndex != -1) {
 					SkeletonJoint newJoint = paths[i][j][maxIndex];
-					newJoint.setJunctionType(JT_PATHMID);
+					newJoint.setJunctionType(JunctionType::JT_PATHMID);
 					cout << "p1: " << point2CrossInd[p1] << "-(" << p1.X() << "," << p1.Y() << ")"
 						<< " p2: " << point2CrossInd[p2] << "-(" << p2.X() << "," << p2.Y() << ")"
 						<< " newStation: " << crossInd2Point.size() << "-(" << newJoint.X() << "," << newJoint.Y() << ")" << endl;

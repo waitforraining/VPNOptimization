@@ -5,9 +5,6 @@ namespace ViewPointNetwork
 {
 	OptSkelParam::OptSkelParam()
 	{
-		//m_cell = 0.02;
-		//m_stationRasius = 0.6;
-		//		m_overlapThresh = 0.5;
 		houseType = HT_Indoor;
 		cell = 0.01;
 		stationRadiusMin = 0.8;
@@ -26,6 +23,27 @@ namespace ViewPointNetwork
 		stationRadiusMax = stationRadMax;
 		overlapThresh = ovlpThresh;
 		denseStep = dnsStep;
+	}
+	
+	std::string& OptSkelParam::toString(const string& prefix,const string& format) const 
+	{
+		stringstream ss;
+		ss << setprecision(3) << prefix;
+		if (format.find('t') != format.npos)
+			ss << "-t" << houseType;
+		if (format.find('c') != format.npos)
+			ss << "-c" << cell;
+		if (format.find('r') != format.npos)
+			ss << "-r" << stationRadiusMin;
+		if (format.find('R') != format.npos)
+			ss << "-R" << stationRadiusMax;
+		if (format.find('l') != format.npos)
+			ss << "-l" << overlapThresh;
+		if (format.find('s') != format.npos)
+			ss << "-s" << scoreThresh;
+		if (format.find('d') != format.npos)
+			ss << "-d" << denseStep;
+		return ss.str();
 	}
 
 	VpnOptimizerBySkeleton::VpnOptimizerBySkeleton()
@@ -52,32 +70,27 @@ namespace ViewPointNetwork
 	{
 	}
 
-	bool VpnOptimizerBySkeleton::initialize()
+	void VpnOptimizerBySkeleton::initialize()
 	{
 		initializeHouse();
 		initializeHeatMap();
 		initializeSklGraph();
 		initializeNet();
 		initializeVec();
-		m_stations = m_stationNet.getStations();
-		drawWholeHouse(m_houseName, m_param.cell, 0, RT_L2, 5);
-		m_stationNet.writeStationOverlapMatrix("overlap2.csv");
-		return true;
+
 	}
 
 
 	void VpnOptimizerBySkeleton::getScanGroups()
 	{
-		unordered_set<int> remainStations, adjStations;
+		set<int> remainStations, adjStations;
 		for (int i = 0; i < m_stationNet.getStationsNum(); i++)
 			remainStations.insert(i);
-
 		int loop = 0;
 		int maxScanCnt = 0;
 		vector<int> maxScanInds;
 		m_groupInd = 0;
 		while (true) {
-			//查找补充边数最多的站点
 			if (loop == 0)
 				getMaxScanEdgeCount(remainStations, maxScanInds, maxScanCnt);
 			else
@@ -104,7 +117,7 @@ namespace ViewPointNetwork
 			m_groupStationUMap[m_groupInd].push_back(maxInd);
 			m_usedStationInds.push_back(maxInd);
 			remainStations.erase(maxInd);
-
+			
 			cout << "--------------------" << endl;
 			std::cout << "站点优化第" << m_groupInd << "个群集第" << loop++ << "轮." << endl;
 			std::cout << "已添加初始站点：" << maxInd << "号." << endl;
@@ -122,21 +135,20 @@ namespace ViewPointNetwork
 		std::cout << "站点优化完毕." << endl;
 		std::cout << "********************" << endl;
 	}
+
 	void VpnOptimizerBySkeleton::initializeHouse()
 	{
 		MoveMinPoint2Origin(m_vecEdges);
 		//WriteEdges2LineTop(m_vecEdges, m_houseName + "_move_min.top");
-
 		m_house = House(m_vecEdges, m_param.houseType);
 	}
+
 	void VpnOptimizerBySkeleton::initializeHeatMap()
 	{
-		cout << "构建热力图..." << endl;
+		cout << "construct heatMap" << endl;
 		m_heatMap = HeatMap(m_house, m_param.cell);
-
-		
-
-		if (!m_heatMap.loadGrayImg(m_houseName + "_" + to_string(m_param.cell) + "_GRAYheat.png"))
+		bool cache = false;
+		if (!cache || !m_heatMap.loadGrayImg(m_houseName + "_" + to_string(m_param.cell) + "_GRAYheat.png"))
 		{
 			// not use cache
 			m_heatMap.generate(m_house,
@@ -144,7 +156,7 @@ namespace ViewPointNetwork
 
 			m_heatMap.saveBGR_YellowOrange(m_house, m_houseName, false);
 		}
-		m_heatMap.saveGRAY(m_house, m_houseName + "_123" + to_string(m_param.cell));
+		m_heatMap.saveGRAY(m_house, m_houseName + "_" + to_string(m_param.cell));
 
 	}
 
@@ -173,7 +185,6 @@ namespace ViewPointNetwork
 				m_param.stationRadiusMax);
 
 			s.scan(m_house.getBspRoot().get());
-			s.wirteScannedEdges(to_string(i));
 			scanedStations.push_back(s);
 		}
 
@@ -184,39 +195,56 @@ namespace ViewPointNetwork
 
 	void VpnOptimizerBySkeleton::initializeVec()
 	{
-		vector<Edge2D> denseEdges = Densify(m_house.getEdges(), m_param.denseStep);
-		int edgeCount = denseEdges.size();
+		m_denseEdges = Densify(m_house.getEdges(), m_param.denseStep);
+		int edgeCount = m_denseEdges.size();
 		int stationCount = m_stationNet.getStations().size();
 
 		m_scanMat = vector<vector<bool>>(stationCount, vector<bool>(edgeCount, false));
 		m_edgeScanned = vector<bool>(edgeCount, false);
 		m_unScanedCnt = edgeCount;
+		double minPointDis = 0.025;
 		const auto& stations = m_stationNet.getStations();
 		vector<Edge2D> mm,mm1;
-		
 		for (size_t i = 0; i < stations.size(); i++) {
 			const auto& curStation = stations[i];
 			const auto& scannedEdges = curStation.getScanedEdges();
-
+			std::vector<Edge2D> vecEdges = curStation.constructStationCircle();
+			if (scannedEdges.empty()) continue;
 			for (auto j = scannedEdges.begin(); j != scannedEdges.end(); j++) {
 				const auto& curEdge = j->second;
 
 				mm1.push_back(curEdge);
-				for (size_t k = 0; k < denseEdges.size(); k++) {
-					if (denseEdges[k].Overlap(curEdge).Length() != 0 &&
-						curStation.isInValidArea(denseEdges[k])) 
+				for (size_t k = 0; k < m_denseEdges.size(); k++) {
+
+					if (m_denseEdges[k].Overlap(curEdge).Length() > m_denseEdges[k].Length() * 0.9 &&
+						curStation.isInValidArea(m_denseEdges[k]) &&
+						curStation.isInValidResolutionArea(m_denseEdges[k], minPointDis))
 					{
-						mm.push_back(denseEdges[k]);
+						mm.push_back(m_denseEdges[k]);
+						m_scanMat[i][k] = true;
+					}
+				}				
+			}
+
+			auto startEdge = scannedEdges.begin()->second;
+			auto endEdge = scannedEdges.rbegin()->second;
+			if (ParallelLines(startEdge.getLine2D(), endEdge.getLine2D(), 0.001 * M_PI / 180.0))
+			{
+				auto mergeEdge = startEdge + endEdge;
+				for (size_t k = 0; k < m_denseEdges.size(); k++) {
+					if (m_denseEdges[k].Overlap(mergeEdge).Length() > m_denseEdges[k].Length() * 0.9 &&
+						curStation.isInValidArea(m_denseEdges[k]) &&
+						curStation.isInValidResolutionArea(m_denseEdges[k], minPointDis))
+					{
+						mm.push_back(m_denseEdges[k]);
 						m_scanMat[i][k] = true;
 					}
 				}
 			}
-		}
-		stations[0].wirteScannedEdges("test");
-		stations[3].wirteScannedEdges("test3");
+			//sWriteEdges(to_string(i) + "sation", mm);
+			//mm.clear();
 
-		sWriteEdges("scanned", mm1);
-		sWriteEdges("denseScanned", mm);
+		}
 	}
 
 	void VpnOptimizerBySkeleton::doOptimize()
@@ -227,15 +255,49 @@ namespace ViewPointNetwork
 		for (int i = 0; i < m_usedStationInds.size(); i++)
 		{
 			m_stations.push_back(m_stationNet.getStation(m_usedStationInds[i]));
+			m_stations[i].writeInResolutionEdges(to_string(i), m_denseEdges, 0.025);
 		}
-		drawWholeHouse(m_houseName, m_param.cell, 1, RT_L2, 5);
-	}
+		drawWholeHouse(m_houseName);
+		
+		StationNet netSn(m_stations);
+		netSn.writeStationOverlapMatrix("overlap.csv");
 
+	}
+	void VpnOptimizerBySkeleton::drawWholeHouse(const string& outresultpath) const
+	{
+		//展示初始站点房屋图
+		cv::Mat heatRgbScore = cv::imread(m_houseName + "_RGBheat.png", cv::IMREAD_COLOR);
+		if (heatRgbScore.empty()) {
+			std::cerr << "Error: Could not read the image." << std::endl;
+			return;
+			// 处理错误情况
+		}
+		cv::Mat figure;
+
+		figure = heatRgbScore.clone();
+		drawSkeletonGraph(figure, m_sklGraph);
+		drawStations(figure, m_sklGraph, m_stations, m_heatMap.getCell(), 5);
+
+		stringstream ss;
+		ss << setprecision(3) << "E:\\DataSet\\s3d\\result\\"
+			<< outresultpath
+			<< "-t" << m_param.houseType
+			<< "-c" << m_param.cell
+			<< "-r" << m_param.stationRadiusMin
+			<< "-R" << m_param.stationRadiusMax
+			<< "-l" << m_param.overlapThresh
+			<< "-s" << m_param.scoreThresh
+			<< "-d" << m_param.denseStep;
+
+		cv::imwrite(ss.str() + "_refinedStations.png", figure);
+		
+	
+	}
 	void VpnOptimizerBySkeleton::addStationForConnecting()
 	{
 		double overlapThresh = m_param.overlapThresh;
 		double r_min = m_param.stationRadiusMin; 
-		double r_max = m_param.stationRadiusMin;
+		double r_max = m_param.stationRadiusMax;
 		cout << "添加连接站点以保证重叠度..." << endl;
 
 		bool flag = false;
@@ -272,7 +334,7 @@ namespace ViewPointNetwork
 			SkeletonJoint& p2 = m_sklGraph.crossInd2Point[j];
 
 			SkeletonJoint connectStation = m_sklGraph.getPath(i, j)[pathSize / 2];
-			connectStation.setJunctionType(JT_ADDOVERLAP);//为保证重叠度而添加的路径中心点
+			connectStation.setJunctionType(JunctionType::JT_ADDOVERLAP);//为保证重叠度而添加的路径中心点
 
 			m_sklGraph.updatePathsByNewJoint(i, j, pathSize / 2, connectStation);
 			//更新stationNet
@@ -297,6 +359,8 @@ namespace ViewPointNetwork
 		const std::string& platformPath, const std::string& scanner,
 		const std::string& surveyName)
 	{
+		auto stations = m_stations;
+
 		boost::property_tree::ptree tree;
 		// scanSetting
 		auto& scansetting = tree.add("document.scannerSettings", "");
@@ -305,7 +369,7 @@ namespace ViewPointNetwork
 		scansetting.put("<xmlattr>.active", "true");
 		scansetting.put("<xmlattr>.pulseFreq_hz", "600000");
 		scansetting.put("<xmlattr>.scanFreq_hz", "83");
-		scansetting.put("<xmlattr>.headRotatePerSec_deg", "3");
+		scansetting.put("<xmlattr>.headRotatePerSec_deg", "15");
 		scansetting.put("<xmlattr>.verticalAngleMin_deg", "-60");
 		scansetting.put("<xmlattr>.verticalAngleMax_deg", "240");
 		scansetting.put("<xmlattr>.headRotateStart_deg", "0");
@@ -318,7 +382,6 @@ namespace ViewPointNetwork
 		surveyNode.put("<xmlattr>.platform", platformPath);
 		surveyNode.put("<xmlattr>.scanner", scanner);
 
-		auto stations = m_stationNet.getStations();
 		for (int i = 0; i < stations.size(); i++)
 		{
 			auto& legNode = surveyNode.add("leg", "");
@@ -435,7 +498,7 @@ namespace ViewPointNetwork
 		return maxInd;
 	}
 
-	void VpnOptimizerBySkeleton::getMaxScanEdgeCount(unordered_set<int>& stationId, vector<int>& maxScanStationId, int& maxScanCnt)
+	void VpnOptimizerBySkeleton::getMaxScanEdgeCount(set<int>& stationId, vector<int>& maxScanStationId, int& maxScanCnt)
 	{
 		maxScanCnt = 0;
 		maxScanStationId.clear();
@@ -654,7 +717,7 @@ namespace ViewPointNetwork
 		return maxOverlap;
 	}
 
-	void VpnOptimizerBySkeleton::groupConnect(std::unordered_set<int>& remainStations)
+	void VpnOptimizerBySkeleton::groupConnect(std::set<int>& remainStations)
 	{
 		if (m_groupInd == 0) return;
 		std::array<int, 2> maxOverlapInd;
@@ -754,8 +817,8 @@ namespace ViewPointNetwork
 		return connectCnt < m_stationNet.getStationsNum() / 10;
 	}
 
-	void VpnOptimizerBySkeleton::updateAdjcentStation(int curInd, std::unordered_set<int>& remainStations,
-		std::unordered_set<int>& adjStations)
+	void VpnOptimizerBySkeleton::updateAdjcentStation(int curInd, std::set<int>& remainStations,
+		std::set<int>& adjStations)
 	{
 		if (adjStations.count(curInd))
 			adjStations.erase(curInd);
@@ -769,42 +832,5 @@ namespace ViewPointNetwork
 
 			adjStations.insert(remainStationInd);
 		}
-	}
-
-	
-
-	//绘制总体房屋图
-	void VpnOptimizerBySkeleton::drawWholeHouse(const string& outresultpath, double scalar,
-		int resultType, int distType, int markSize) const
-	{
-		//展示初始站点房屋图
-		cv::Mat heatRgbScore = cv::imread(outresultpath + "_RGBheat.png", cv::IMREAD_COLOR);
-		if (heatRgbScore.empty()) {
-			std::cerr << "Error: Could not read the image." << std::endl;
-			return;
-			// 处理错误情况
-		}
-		cv::Mat figure = heatRgbScore.clone();
-
-		// 绘制路径
-		m_sklGraph.drawPath(figure);
-
-		// 绘制站点
-		drawStations(figure, m_sklGraph, m_stations, m_heatMap.getCell(), 5);
-
-		stringstream ss;
-		ss << setprecision(3)   
-			<< outresultpath 
-			<< "-t" << m_param.houseType
-			<< "-c" << m_param.cell
-			<< "-r" << m_param.stationRadiusMin
-			<< "-R" << m_param.stationRadiusMax
-			<< "-l" << m_param.overlapThresh
-			<< "-s" << m_param.scoreThresh
-			<< "-d" << m_param.denseStep;
-		if (resultType == 0)
-			cv::imwrite(ss.str() + "_initStations.png", figure);
-		else
-			cv::imwrite(ss.str() + "_refinedStations.png", figure);
 	}
 }

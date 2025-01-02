@@ -107,17 +107,6 @@ void IOTop::writeEdges(std::string outFileName,const std::vector<Edge2D>& edges)
 	fprintf(fp, O_EXPL_H, comment_char, comment_char);
 	fprintf(fp, O_LINE_H, comment_char);
 
-	for (int i = 0; i < edges.size(); i++)
-	{
-		auto p0 = edges[i].getBegPoint();
-		fprintf(fp, O_FORMAT, i * 2, p0.X(), p0.Y(), 0.0,
-			0, 0, 0, 0, 0, 0);
-		p0 = edges[i].getEndPoint();
-		fprintf(fp, O_FORMAT, i * 2 + 1, p0.X(), p0.Y(), 0.0,
-			0, 0, 0, 0, 0, 0);
-	}
-
-	fclose(fp);
 
 	ofstream out(outFileName + ".top", ios::out);
 	out << 716 << " # file ID" << "\n";
@@ -128,12 +117,19 @@ void IOTop::writeEdges(std::string outFileName,const std::vector<Edge2D>& edges)
 	out << "# Point numbers" << "\n";
 	out << "# -----------------------------------------------------------------------------------------------------------" << "\n";
 
-
-	for (int i = 0; i < edges.size() * 2; i += 2)
+	int pointInd = 0;
+	for (int i = 0; i < edges.size(); i ++)
 	{
+		auto p0 = edges[i].getBegPoint();
+		fprintf(fp, O_FORMAT, pointInd, p0.X(), p0.Y(), 0.0,
+			0, 0, 0, 0, 0, 0);
+		p0 = edges[i].getEndPoint();
+		fprintf(fp, O_FORMAT, pointInd + 1, p0.X(), p0.Y(), 0.0,
+			0, 0, 0, 0, 0, 0);
 		out << i << "\t" << 2 << "\t" << 0 << "\n";
-		out << i << "\t" << i + 1 << "\n";
+		out << pointInd << "\t" << pointInd + 1 << "\n";
+		pointInd += 2;
 	}
-
+	fclose(fp);
 	out.close();
 }

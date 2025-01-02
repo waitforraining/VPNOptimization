@@ -53,7 +53,7 @@ namespace ViewPointNetwork
 		void setConnectColor();
 		void clearColor();
 		void initMidCross();
-		void drawPath(cv::Mat& figure) const;
+
 		cv::Mat getSkeleton() const;
 
 		void getMidCrossPath();

@@ -15,7 +15,8 @@
 #include "StationNet.h"
 #include "HeatMap.h"
 #include "RidgeFilter.h"
-#include "IO/io.h"
+#include "io.h"
+#include "Draw/Draw.h"
 
 namespace ViewPointNetwork
 {
@@ -26,7 +27,7 @@ namespace ViewPointNetwork
 		OptSkelParam(HouseType hType, double inCell,
 			double stationRadMin, double stationRadMax,
 			double ovlpThresh, double dnsStep);
-
+		std::string& toString(const std::string& prefix = "", const std::string& format = "tcrRlsd") const;
 	public:
 		HouseType houseType;
 		double cell;
@@ -57,11 +58,9 @@ namespace ViewPointNetwork
 			const std::string& platformPath, const std::string& scanner, const std::string& surveyName = "test");
 		void writeStation2Txt(const std::string& outputTxtPath);
 
-		void drawWholeHouse(const std::string & outresultpath, double scalar, int resultType,
-			int distType = RT_L2, int markSize = 5) const;
 
 	private:
-		bool initialize();
+		void initialize();
 		void getScanGroups();
 		void initializeHouse();
 		void initializeHeatMap();
@@ -69,15 +68,17 @@ namespace ViewPointNetwork
 		void initializeNet();
 		void initializeVec();
 
-		void groupConnect(std::unordered_set<int>& remainStations);
+		void groupConnect(std::set<int>& remainStations);
 		void addStationForConnecting();
 		void computePathsAndMat();
 		void updateScanMat(int maxScanInd);
 
+		void drawWholeHouse(const std::string& outresultpath) const;
+
 		void closeNet();
-		void getMaxScanEdgeCount(std::unordered_set<int>& stationId, std::vector<int>& maxScanStationId, int& maxScanCnt);
-		void updateAdjcentStation(int curInd, std::unordered_set<int>& remainStations,
-			std::unordered_set<int>& adjStations);
+		void getMaxScanEdgeCount(std::set<int>& stationId, std::vector<int>& maxScanStationId, int& maxScanCnt);
+		void updateAdjcentStation(int curInd, std::set<int>& remainStations,
+			std::set<int>& adjStations);
 
 		double getMaxOverlap(int curInd);
 		double getGroupOverlapMaxStation(int group0, std::array<int, 2>& maxOverlapInd);
@@ -87,23 +88,23 @@ namespace ViewPointNetwork
 	private:
 		std::string m_houseName;
 		OptSkelParam m_param;
-
-		std::vector<Edge2D> m_vecEdges;
-		std::vector<Edge2D> m_offestVecEdges;//如果室外扫描，偏移量不为0
 		House m_house;
 		HeatMap m_heatMap;
 		StationNet m_stationNet;
 		SkeletonGraph m_sklGraph;
 
+		std::vector<Edge2D> m_vecEdges;
+		std::vector<Edge2D> m_denseEdges;
+		std::vector<Edge2D> m_offestVecEdges;//如果室外扫描，偏移量不为0
+
 		std::vector<Station> m_stations;
 		std::unordered_map<int, std::vector<int>> m_groupStationUMap;
 		std::vector<int> m_usedStationInds;
 
-		std::vector<std::vector<bool>> m_scanMat;//row: stations, col: edges
 		std::vector<bool> m_edgeScanned;
-		
-		std::vector<std::vector<std::vector<int>>> m_stationPaths;
+		std::vector<std::vector<bool>> m_scanMat;//row: stations, col: edges
 		std::vector<std::vector<bool>> m_conMat;
+		std::vector<std::vector<std::vector<int>>> m_stationPaths;
 		
 		int m_unScanedCnt;
 		int m_groupInd;

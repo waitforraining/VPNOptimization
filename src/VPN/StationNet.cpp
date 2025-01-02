@@ -346,7 +346,7 @@ namespace ViewPointNetwork
 			std::stringstream ss;
 			ss << std::setw(2) << std::setfill('0') << i << "_";
 
-			m_stations[i].wirteScannedEdges(ss.str());
+			m_stations[i].writeScannedEdges(ss.str());
 		}
 
 	}

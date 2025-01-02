@@ -288,7 +288,7 @@ namespace ViewPointNetwork
 	{
 		double d = m_line.SignedDiatance(p);
 
-		if (fabs(d) > 0.0001) return false;
+		if (fabs(d) > 0.00001) return false;
 		double sBeg = Scalar(m_begPnt);
 		double sEnd = Scalar(m_endPnt);
 		double sTem = Scalar(p);

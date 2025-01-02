@@ -47,12 +47,12 @@ namespace ViewPointNetwork
 
 		double getScanLen() const;
 		double getScanedScore() const;
-		double getSmallestAng() const;
 
-		bool wirteScannedEdges(const std::string& prefix = "") const;
-
-	private:
+		void writeScannedEdges(const std::string& prefix = "") const;
+		void writeInResolutionEdges(const std::string& prefix, std::vector<Edge2D> denseEdges, double minScanAngle);
 		std::vector<Edge2D> constructStationCircle() const;
+	private:
+		
 		Point2D getPoint(const Edge2D& edge, double theta, double r1) const;
 		Point2D getPoint(const Edge2D& edge, double theta) const;
 		void scanEdge(const Edge2D&);
@@ -65,6 +65,7 @@ namespace ViewPointNetwork
 
 		bool isInterArea(const Edge2D& e,double r) const;
 		bool isInValidArea(const Edge2D& s) const;
+		bool isInValidResolutionArea(const Edge2D& s,double minPointDist) const;
 
 	private:
 		double m_scanedLen, m_scanedScore, m_smallestAng, m_maxOverlap;

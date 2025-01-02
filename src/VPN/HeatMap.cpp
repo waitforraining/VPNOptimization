@@ -86,17 +86,14 @@ namespace ViewPointNetwork
 		double pi_2 = 2.0 * M_PI;
 		
 		if (figure.empty()) {
-			std::cerr << "Failed to load image" << std::endl;
+			std::cerr << "no cache" << std::endl;
 			return false;
 		}
 		cv::flip(figure, figure, 0);
-		// 遍历图像并还原 m_value
 		for (int i = 0; i < m_width; i++) {
 			for (int j = 0; j < m_height; j++) {
-				// 还原灰度值
 				double score = static_cast<double>(figure.at<uchar>(j, i)) / 255.0;
 
-				// 恢复 m_value[j][i]
 				m_value[i][j] = score * pi_2;
 			}
 		}
@@ -105,15 +102,17 @@ namespace ViewPointNetwork
 
 	void HeatMap::generate(House& house, double r_min, double r_max, double scoreThresh)
 	{
+		
 		Station s;
 		for (int i = 0; i < m_width; i++)
 		{
 			for (int j = 0; j < m_height; j++)
 			{
+				
 				int ptType = house.position(i, j, m_cell);
+
 				if (house.getType() == HT_Indoor && ptType != PT_INSIDE ) continue;
 				if (house.getType() == HT_Outdoor && ptType != PT_OUTSIDE ) continue;
-
 				s = Station(i * m_cell, j * m_cell, r_min, r_max);
 				s.scan(house.getBspRoot().get());
 				m_value[i][j] = s.getScanedScore();
@@ -501,7 +500,7 @@ namespace ViewPointNetwork
 				thickness, lineType, shift);
 	}
 
-	void drawStation(cv::Mat & figure, const vector<Station> & vecStations, double cell,
+	void drawStations(cv::Mat & figure, const vector<Station> & vecStations, double cell,
 		const cv::Scalar & color, int radius, int thickness, int lineType, int shift)
 	{
 		assert(cell != 0);
@@ -531,26 +530,6 @@ namespace ViewPointNetwork
 				cv::line(figure, cv::Point(c->second.getBegPoint().X() / cell, figure.rows - c->second.getBegPoint().Y() / cell),
 					cv::Point(c->second.getEndPoint().X() / cell, figure.rows - c->second.getEndPoint().Y() / cell), cv::Scalar(0, 255, 0), 2);
 			}
-		}
-	}
-
-
-
-	void drawStations(cv::Mat & figure, const SkeletonGraph & sg, 
-		const vector<Station>& iStations, double cell, int radius)
-	{
-		for (size_t i = 0; i < iStations.size(); i++)
-		{
-			Station station = iStations[i];
-			cv::Point s(station.X() / cell, station.Y() / cell);
-			auto p = s;
-			p.y = figure.rows - p.y;
-			s.y = figure.rows - s.y;
-			cv::putText(figure, to_string(i), p, FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0, 0, 0), 1);
-
-			int colorType = sg.color_type[i];
-			circle(figure, s, radius, sg.stationColor[colorType], -1);
-
 		}
 	}
 
@@ -633,16 +612,5 @@ namespace ViewPointNetwork
 		}
 	}
 
-	void drawHouseLines(cv::Mat & figure, const House & house, double cell)
-	{
-		//int edgeSize = house.getEdges().size();
-		//for (int i = 0; i < edgeSize; i++) {
-		for (size_t i = 0; i < house.getEdges().size(); i++) {
-			auto endP0 = house.getEdge(i).getBegPoint();
-			auto endP1 = house.getEdge(i).getEndPoint();
-			auto p0 = cv::Point(endP0.X() / cell, figure.rows - endP0.Y() / cell);
-			auto p1 = cv::Point(endP1.X() / cell, figure.rows - endP1.Y() / cell);
-			cv::line(figure, p0, p1, cv::Scalar(0, 0, 0), 1);
-		}
-	}
+
 }

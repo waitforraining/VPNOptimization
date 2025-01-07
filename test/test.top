@@ -1,0 +1,15 @@
+716 # file ID
+# Line topology database :
+# Number of lines :	4
+# Line number   \   Number of points   \   Number of attributes
+# Attributes Tag number   \   Attribute value
+# Point numbers
+# -----------------------------------------------------------------------------------------------------------
+0	2	0
+0	1
+1	2	0
+2	3
+2	2	0
+4	5
+3	2	0
+6	7

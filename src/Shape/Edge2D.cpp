@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
-#include "Edge2D.h"
 #include <cassert>
+
+#include "Shape/Edge2D.h"
 
 using namespace std;
 

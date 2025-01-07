@@ -5,8 +5,9 @@
 #include <vector>
 
 #include <opencv2/opencv.hpp>
-#include "io.h"
-#include "Edge2D.h"
+
+#include "Shape/Edge2D.h"
+#include "IO/io.h"
 
 namespace ViewPointNetwork
 {

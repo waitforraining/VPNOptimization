@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 
 
-#include "HeatMap.h"
+#include "VPN/HeatMap.h"
 
 using namespace std;
 using namespace cv;

@@ -1,4 +1,4 @@
-#include "VpnOptimizerBySkeleton.h"
+#include "VPN/VpnOptimizerBySkeleton.h"
 
 using namespace std;
 namespace ViewPointNetwork
@@ -56,7 +56,7 @@ namespace ViewPointNetwork
 		m_param = param;
 		m_houseName = houseName;
 		//readEdge(houseName + "_move_min.objpts", houseName + "_move_min.top" ,m_vecEdges);
-		sReadEdges(houseName, m_vecEdges);
+		readEdges(houseName, m_vecEdges,"top");
 		//writeEdge("test", m_vecEdges);
 	}
 
@@ -139,7 +139,6 @@ namespace ViewPointNetwork
 	void VpnOptimizerBySkeleton::initializeHouse()
 	{
 		MoveMinPoint2Origin(m_vecEdges);
-		//WriteEdges2LineTop(m_vecEdges, m_houseName + "_move_min.top");
 		m_house = House(m_vecEdges, m_param.houseType);
 	}
 
@@ -241,7 +240,7 @@ namespace ViewPointNetwork
 					}
 				}
 			}
-			//sWriteEdges(to_string(i) + "sation", mm);
+			//writeEdges(to_string(i) + "sation", mm);
 			//mm.clear();
 
 		}
@@ -253,10 +252,8 @@ namespace ViewPointNetwork
 		getScanGroups();
 		m_stations.clear();
 		for (int i = 0; i < m_usedStationInds.size(); i++)
-		{
 			m_stations.push_back(m_stationNet.getStation(m_usedStationInds[i]));
-			m_stations[i].writeInResolutionEdges(to_string(i), m_denseEdges, 0.025);
-		}
+
 		drawWholeHouse(m_houseName);
 		
 		StationNet netSn(m_stations);
@@ -279,7 +276,7 @@ namespace ViewPointNetwork
 		drawStations(figure, m_sklGraph, m_stations, m_heatMap.getCell(), 5);
 
 		stringstream ss;
-		ss << setprecision(3) << "E:\\DataSet\\s3d\\result\\"
+		ss << setprecision(3)
 			<< outresultpath
 			<< "-t" << m_param.houseType
 			<< "-c" << m_param.cell
@@ -359,52 +356,51 @@ namespace ViewPointNetwork
 		const std::string& platformPath, const std::string& scanner,
 		const std::string& surveyName)
 	{
-		auto stations = m_stations;
+		//auto stations = m_stations;
+		//boost::property_tree::ptree tree;
+		//// scanSetting
+		//auto& scansetting = tree.add("document.scannerSettings", "");
 
-		boost::property_tree::ptree tree;
-		// scanSetting
-		auto& scansetting = tree.add("document.scannerSettings", "");
+		//scansetting.put("<xmlattr>.id", "scanner1");
+		//scansetting.put("<xmlattr>.active", "true");
+		//scansetting.put("<xmlattr>.pulseFreq_hz", "600000");
+		//scansetting.put("<xmlattr>.scanFreq_hz", "83");
+		//scansetting.put("<xmlattr>.headRotatePerSec_deg", "15");
+		//scansetting.put("<xmlattr>.verticalAngleMin_deg", "-60");
+		//scansetting.put("<xmlattr>.verticalAngleMax_deg", "240");
+		//scansetting.put("<xmlattr>.headRotateStart_deg", "0");
+		//scansetting.put("<xmlattr>.headRotateStop_deg", "360");
 
-		scansetting.put("<xmlattr>.id", "scanner1");
-		scansetting.put("<xmlattr>.active", "true");
-		scansetting.put("<xmlattr>.pulseFreq_hz", "600000");
-		scansetting.put("<xmlattr>.scanFreq_hz", "83");
-		scansetting.put("<xmlattr>.headRotatePerSec_deg", "15");
-		scansetting.put("<xmlattr>.verticalAngleMin_deg", "-60");
-		scansetting.put("<xmlattr>.verticalAngleMax_deg", "240");
-		scansetting.put("<xmlattr>.headRotateStart_deg", "0");
-		scansetting.put("<xmlattr>.headRotateStop_deg", "360");
+		//// surveyNode
+		//auto& surveyNode = tree.add("document.survey", "");
+		//surveyNode.put("<xmlattr>.name", surveyName);
+		//surveyNode.put("<xmlattr>.scene", scenePath);
+		//surveyNode.put("<xmlattr>.platform", platformPath);
+		//surveyNode.put("<xmlattr>.scanner", scanner);
 
-		// surveyNode
-		auto& surveyNode = tree.add("document.survey", "");
-		surveyNode.put("<xmlattr>.name", surveyName);
-		surveyNode.put("<xmlattr>.scene", scenePath);
-		surveyNode.put("<xmlattr>.platform", platformPath);
-		surveyNode.put("<xmlattr>.scanner", scanner);
+		//for (int i = 0; i < stations.size(); i++)
+		//{
+		//	auto& legNode = surveyNode.add("leg", "");
+		//	legNode.put("<xmlattr>.stripId", i);
 
-		for (int i = 0; i < stations.size(); i++)
-		{
-			auto& legNode = surveyNode.add("leg", "");
-			legNode.put("<xmlattr>.stripId", i);
+		//	auto& platformSettingsNode = legNode.add("platformSettings", "");
+		//	platformSettingsNode.put("<xmlattr>.x", stations[i].X());
+		//	platformSettingsNode.put("<xmlattr>.y", stations[i].Y());
+		//	platformSettingsNode.put("<xmlattr>.z", "-1");
+		//	platformSettingsNode.put("<xmlattr>.onGround", "false");
 
-			auto& platformSettingsNode = legNode.add("platformSettings", "");
-			platformSettingsNode.put("<xmlattr>.x", stations[i].X());
-			platformSettingsNode.put("<xmlattr>.y", stations[i].Y());
-			platformSettingsNode.put("<xmlattr>.z", "-1");
-			platformSettingsNode.put("<xmlattr>.onGround", "false");
-
-			auto& scannerSettingsNode = legNode.add("scannerSettings", "");
-			scannerSettingsNode.put("<xmlattr>.template", "scanner1");
-		}
-		boost::property_tree::xml_writer_settings<string> settings('\t', 4);
-		// 写出 XML 文件
-		try {
-			boost::property_tree::write_xml(resultFile, tree, std::locale(), settings);
-		}
-		catch (...)
-		{
-			cout << "error write to " << resultFile << endl;
-		}
+		//	auto& scannerSettingsNode = legNode.add("scannerSettings", "");
+		//	scannerSettingsNode.put("<xmlattr>.template", "scanner1");
+		//}
+		//boost::property_tree::xml_writer_settings<string> settings('\t', 4);
+		//// 写出 XML 文件
+		//try {
+		//	boost::property_tree::write_xml(resultFile, tree, std::locale(), settings);
+		//}
+		//catch (...)
+		//{
+		//	cout << "error write to " << resultFile << endl;
+		//}
 	}
 
 	void VpnOptimizerBySkeleton::writeStation2Txt(const string& outputTxtPath)

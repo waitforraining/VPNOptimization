@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "Point2D.h"
+#include "Shape/Point2D.h"
 
 namespace ViewPointNetwork
 {

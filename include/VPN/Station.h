@@ -8,12 +8,14 @@
 #include <map>
 #include <iomanip>  
 
-#include "Point2D.h"
-#include "Edge2D.h"
-#include "BSPNode.h"
-#include "VPNTypeDefinition.h"
-#include "Vector2D.h"
-#include "io.h"
+#include "Shape/Point2D.h"
+#include "Shape/Edge2D.h"
+#include "Shape/Vector2D.h"
+
+#include "VPN/BSPNode.h"
+#include "VPN/VPNTypeDefinition.h"
+
+#include "IO/io.h"
 
 
 namespace ViewPointNetwork

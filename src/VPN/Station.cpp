@@ -4,8 +4,8 @@ using namespace std;
 #include <cmath>
 
 
-#include "Station.h"
-#include "BSPNode.h"
+#include "VPN/Station.h"
+#include "VPN/BSPNode.h"
 
 namespace ViewPointNetwork
 {
@@ -96,7 +96,7 @@ namespace ViewPointNetwork
 
 		for(const auto & var : m_edgeScanned)
 			vecEdges.push_back(var.second);
-		sWriteEdges(prefix, vecEdges);
+		writeEdges(prefix, vecEdges);
 	}
 
 	void Station::writeInResolutionEdges(const std::string& prefix, vector<Edge2D> denseEdges, double minScanAngle)
@@ -133,7 +133,7 @@ namespace ViewPointNetwork
 			}
 		}
 
-		sWriteEdges(prefix, vecEdges);
+		writeEdges(prefix, vecEdges);
 	}
 
 	//获取站点对边的扫描角度

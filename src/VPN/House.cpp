@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "House.h"
+#include "VPN/House.h"
 
 using namespace cv;
 using namespace std;
@@ -44,7 +44,7 @@ namespace ViewPointNetwork
 					edge.getEndPoint() + Point2D(1.0 * m_maxX, 1.0 * m_maxY));
 			}
 		}
-		sWriteEdges("move_min", m_edges);
+		writeEdges("move_min", m_edges);
 
 		initializeBspTree();
 	}
@@ -60,7 +60,7 @@ namespace ViewPointNetwork
 		m_bspRoot = shared_ptr<BSPNode>(buildBspTree(m_edges, 0),deleteNode);
 		vector<Edge2D> edges;
 		getBspEdges(edges, m_bspRoot.get());
-		sWriteEdges("bsp", edges);
+		writeEdges("bsp", edges);
 	}
 
 	int House::getNearstEdgeInd(const Point2D & p) const

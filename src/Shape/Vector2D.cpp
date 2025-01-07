@@ -1,8 +1,10 @@
-#include "Vector2D.h"
-#include "Point2D.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <assert.h>
+
+#include "Shape/Vector2D.h"
+#include "Shape/Point2D.h"
+
 
 namespace ViewPointNetwork
 {

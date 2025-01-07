@@ -1,7 +1,7 @@
-#include "Point2D.h"
-
 #include <math.h>
 #include <assert.h>
+
+#include "Shape/Point2D.h"
 
 namespace ViewPointNetwork
 {

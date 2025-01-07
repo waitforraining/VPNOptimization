@@ -3,11 +3,12 @@
 #include <vector>
 #include <memory>
 
-#include "Point2D.h"
-#include "Edge2D.h"
-#include "Station.h"
-#include "BSPNode.h"
-#include "VPNTypeDefinition.h"
+#include "Shape/Point2D.h"
+#include "Shape/Edge2D.h"
+
+#include "VPN/Station.h"
+#include "VPN/BSPNode.h"
+#include "VPN/VPNTypeDefinition.h"
 
 namespace ViewPointNetwork
 {

@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "StationNet.h"
+#include "VPN/StationNet.h"
 using namespace std;
 
 namespace ViewPointNetwork

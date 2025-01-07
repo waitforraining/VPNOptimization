@@ -1,7 +1,7 @@
 #ifndef __VPN_SKELETON_JOINT__
 #define __VPN_SKELETON_JOINT__
 
-#include "VPNTypeDefinition.h"
+#include "VPN/VPNTypeDefinition.h"
 
 namespace ViewPointNetwork
 {

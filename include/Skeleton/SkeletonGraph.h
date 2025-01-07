@@ -9,12 +9,14 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "House.h"
-#include "Station.h"
-#include "BSPNode.h"
-#include "Edge2D.h"
-#include "VPNTypeDefinition.h"
-#include "SkeletonJoint.h"
+#include "Shape/Edge2D.h"
+
+#include "VPN/House.h"
+#include "VPN/Station.h"
+#include "VPN/BSPNode.h"
+#include "VPN/VPNTypeDefinition.h"
+
+#include "Skeleton/SkeletonJoint.h"
 
 namespace ViewPointNetwork
 {

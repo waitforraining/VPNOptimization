@@ -1,4 +1,4 @@
-#include "SkeletonJoint.h"
+#include "Skeleton/SkeletonJoint.h"
 
 namespace ViewPointNetwork
 {

@@ -4,18 +4,20 @@
 #include <vector>
 #include <unordered_set>
 #include <map>
-#include <boost/property_tree/xml_parser.hpp>
 
-#include "Edge2D.h"
-#include "SkeletonGraph.h"
-#include "Station.h"
-#include "House.h"
-#include "StationNet.h"
-#include "BSPNode.h"
-#include "StationNet.h"
-#include "HeatMap.h"
-#include "RidgeFilter.h"
-#include "io.h"
+#include "Shape/Edge2D.h"
+
+#include "Skeleton/SkeletonGraph.h"
+#include "Skeleton/RidgeFilter.h"
+
+#include "VPN/Station.h"
+#include "VPN/House.h"
+#include "VPN/StationNet.h"
+#include "VPN/BSPNode.h"
+#include "VPN/StationNet.h"
+#include "VPN/HeatMap.h"
+
+#include "IO/io.h"
 #include "Draw/Draw.h"
 
 namespace ViewPointNetwork

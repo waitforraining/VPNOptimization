@@ -1,8 +1,8 @@
 #ifndef _VPN_LINE_2D_h_
 #define _VPN_LINE_2D_h_
 
-#include "Point2D.h"
-#include "Vector2D.h"
+#include "Shape/Point2D.h"
+#include "Shape/Vector2D.h"
 
 namespace ViewPointNetwork
 {

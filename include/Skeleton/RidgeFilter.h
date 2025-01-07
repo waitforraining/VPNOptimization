@@ -1,13 +1,14 @@
 #pragma once
 #include <string>
 
-#include "VPNTypeDefinition.h"
-#include "House.h"
-#include "HeatMap.h"
-#include "RidgeFilter.h"
-#include "SkeletonGraph.h"
-
 #include <opencv2/core.hpp>
+
+#include "VPN/VPNTypeDefinition.h"
+#include "VPN/House.h"
+#include "VPN/HeatMap.h"
+
+#include "Skeleton/SkeletonGraph.h"
+
 
 namespace ViewPointNetwork
 {

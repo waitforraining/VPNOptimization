@@ -2,9 +2,9 @@
 #include <math.h>
 #include <assert.h>
 
-#include "Line2D.h"
-#include "Vector2D.h"
-#include "Point2D.h"
+#include "Shape/Line2D.h"
+#include "Shape/Vector2D.h"
+#include "Shape/Point2D.h"
 
 namespace ViewPointNetwork
 {

@@ -1,7 +1,7 @@
 #ifndef _VPN_POINT_2D_h_
 #define _VPN_POINT_2D_h_
 
-#include "Point2D.h"
+#include "Shape/Point2D.h"
 
 namespace ViewPointNetwork
 {

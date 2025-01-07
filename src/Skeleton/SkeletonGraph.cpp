@@ -1,4 +1,4 @@
-#include "SkeletonGraph.h"
+#include "Skeleton/SkeletonGraph.h"
 
 using namespace std;
 using namespace cv;

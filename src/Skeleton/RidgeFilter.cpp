@@ -1,4 +1,4 @@
-#include "RidgeFilter.h"
+#include "Skeleton/RidgeFilter.h"
 
 
 using namespace cv;
@@ -81,7 +81,6 @@ namespace ViewPointNetwork
 
 		// 在图像周围添加边界
 		cv::copyMakeBorder(binary, binary, border_size, border_size, border_size, border_size, cv::BORDER_CONSTANT, 0);
-		imwrite("binary.png", binary);
 
 		distType = 2;
 		markSize = 5;

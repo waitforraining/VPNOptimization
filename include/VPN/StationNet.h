@@ -8,7 +8,7 @@
 #include <iomanip>  
 #include <fstream>
 
-#include "Station.h"
+#include "VPN/Station.h"
 
 namespace ViewPointNetwork
 {

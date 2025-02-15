@@ -28,7 +28,7 @@ namespace ViewPointNetwork
 		return neighbors >= 3;
 	}
 
-	//建议把所有的脊线储存起来
+	// It is recommended to store all ridges
 	void SkeletonGraph::getMidCrossPnt(int x, int y, int& midX, int& midY) const
 	{
 		double sumX = 0;
@@ -255,18 +255,18 @@ namespace ViewPointNetwork
 			{
 				if (i == j) continue;
 				if (k == i || k == j) continue;
-				// 如果 i 到 k 和 k 到 j 的路径存在
+				// If the path from i to k and from k to j exists
 				if (connectMat[i][k] && connectMat[k][j])
 				{
-					// 更新 paths 矩阵，合并路径
+					// Update the paths matrix and merge paths
 					if (paths[i][j].empty() || paths[i][k].size() + paths[k][j].size() < paths[i][j].size())
 					{
-						paths[i][j] = paths[i][k];  // 复制 i 到 k 的路径
+						paths[i][j] = paths[i][k];  // Copy the path from i to k
 						paths[i][j].push_back(SkeletonJoint(crossInd2Point[k].X(), crossInd2Point[k].Y())); // 添加中间点 k
 						paths[i][j].insert(paths[i][j].end(), paths[k][j].begin(), paths[k][j].end()); // 拼接 k 到 j 的路径
 						paths[j][i] = vector<SkeletonJoint>(paths[i][j].rbegin(), paths[i][j].rend());
 
-						// 更新 i 到 j 的连接状态
+						// Update the connection status from i to j
 						connectMat[i][j] = 1;
 						connectMat[j][i] = 1;
 					}
@@ -295,18 +295,18 @@ namespace ViewPointNetwork
 				{
 					if (i == j) continue;
 					if (k == i || k == j) continue;
-					// 如果 i 到 k 和 k 到 j 的路径存在
+					// If the path from i to k and from k to j exists
 					if (connectMat[i][k] && connectMat[k][j])
 					{
-						// 更新 paths 矩阵，合并路径
+						// Update the paths matrix and merge paths
 						if (paths[i][j].empty() || paths[i][k].size() + paths[k][j].size() < paths[i][j].size())
 						{
-							paths[i][j] = paths[i][k];  // 复制 i 到 k 的路径
+							paths[i][j] = paths[i][k];  // Copy the path from i to k
 							paths[i][j].push_back(SkeletonJoint(crossInd2Point[k].X(), crossInd2Point[k].Y())); // 添加中间点 k
 							paths[i][j].insert(paths[i][j].end(), paths[k][j].begin(), paths[k][j].end()); // 拼接 k 到 j 的路径
 							paths[j][i] = vector<SkeletonJoint>(paths[i][j].rbegin(), paths[i][j].rend());
 
-							// 更新 i 到 j 的连接状态
+							// Update the connection status from i to j
 							connectMat[i][j] = 1;
 							connectMat[j][i] = 1;
 						}
@@ -381,7 +381,7 @@ namespace ViewPointNetwork
 		if (m_vaildJointNum >= color_type.size())
 			resizeVec();
 
-		// 更新路径
+		// Update the path
 		for (int m = 0; m < paths[i][j].size(); m++) {
 			if (paths[i][j][m] != crossInd2Point[i] && paths[i][j][m] != crossInd2Point[j]) {
 				if (m < maxDisInd) {
@@ -417,8 +417,8 @@ namespace ViewPointNetwork
 		expandPath(addJointInd);
 	}
 
-	//DOTO
-	//重构，拆分成小函数
+	//TODO
+	// Refactoring, split into smaller functions
 	bool SkeletonGraph::addNearbyCrossPoints(double threshold)
 	{
 		bool sign = false;
@@ -460,12 +460,12 @@ namespace ViewPointNetwork
 
 	void SkeletonGraph::addNewStations(double threshold) 
 	{
-		cout << "开始为初始站点添加新站点..." << endl;
+		cout << "Start adding a new site to the initial site..." << endl;
 		bool sign = false;
 		do {
 			sign = addNearbyCrossPoints(threshold);
 		} while (sign);
-		cout << "添加完毕." << endl;
+		cout << "Finished adding." << endl;
 	}
 
 	double SkeletonGraph::pointLineDistance(const SkeletonJoint & point, const SkeletonJoint & lineStart, const SkeletonJoint & lineEnd)

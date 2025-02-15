@@ -41,13 +41,13 @@ namespace ViewPointNetwork
 		return *this;
 	}
 
-	//判断两条边是否是同一条边
+	// Determine whether the two edges are the same
 	bool Edge2D::operator==(const Edge2D& e) const
 	{
 		return (m_begPnt == e.m_begPnt && m_endPnt == e.m_endPnt);
 	}
 
-	//将两条重叠的边合并
+	// Merge two overlapping edges
 	Edge2D Edge2D::operator+(const Edge2D & e)
 	{
 		//assert(false);
@@ -58,7 +58,7 @@ namespace ViewPointNetwork
 		return rst;
 	}
 
-	//将边的端点信息输出到流
+	// Output the edge endpoint information to the stream
 	ostream& operator<<(ostream & out, const Edge2D & e)
 	{
 		out << "[(" << e.getBegPoint().X() << "," << e.getBegPoint().Y() << "), ("
@@ -66,7 +66,7 @@ namespace ViewPointNetwork
 
 		return out;
 	}
-	//无具体意义，只用来生成map
+	// No specific meaning, only used to generate map
 	bool Edge2D::operator<(const Edge2D& other) const
 	{
 		if (getBegPoint() != other.getBegPoint())
@@ -100,19 +100,19 @@ namespace ViewPointNetwork
 		m_line = Line2D(m_begPnt, m_endPnt);
 	}
 
-	//获取边的长度
+	// Gets the length of the edge
 	double Edge2D::Length() const
 	{
 		return m_begPnt.distance(m_endPnt);
 	}
 
-	//判断边是否竖直
+	// Determine whether the edge is vertical
 	bool Edge2D::isVertical(double err) const
 	{
 		return m_line.IsVertical(err);
 	}
 
-	//判断边是否水平
+	// Determine whether the edge is level
 	bool Edge2D::isHorizontal(double err) const
 	{
 		return m_line.IsHorizontal(err);
@@ -149,7 +149,7 @@ namespace ViewPointNetwork
 		return vecPnts;
 	}
 
-	//得到两条边交点的坐标，注意会扩展为直线
+	// Get the coordinates of the intersection of the two edges, note that it expands to a straight line
 	Point2D Edge2D::getCrossPoint(const Edge2D& e) const
 	{
 		Point2D cross;
@@ -267,10 +267,10 @@ namespace ViewPointNetwork
 		return m_line.Online(p.m_begPnt, err) && m_line.Online(p.m_endPnt, err);
 	}
 
-	//老的方式：
-	//-1表示在延长线上
-	//1表示在左侧
-	//0表示在右侧
+	// The old way:
+	//-1 indicates that it is on the extension cable
+	//1 means on the left
+	//0 indicates on the right
 	int Edge2D::isFrontOf(const Point2D& p) const
 	{
 		double d = m_line.SignedDiatance(p);
@@ -302,7 +302,7 @@ namespace ViewPointNetwork
 	{
 		return isCover(e.m_begPnt) && isCover(e.m_endPnt);
 	}
-	//获取一条线段包含另一条线段的三部分：两条未重叠边，一条重叠边
+	// Gets a line segment containing three parts of another line segment: two unoverlapped edges and one overlapped edge
 	std::map<Edge2D, bool> Edge2D::getOverlapEdgeSegs(const Edge2D& e, double distErr) const {
 		//assert(*this.isCover(e));
 		std::map<Edge2D, bool> splitedEdges;

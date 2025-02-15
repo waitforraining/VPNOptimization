@@ -1,5 +1,5 @@
 #include "Skeleton/RidgeFilter.h"
-
+#include <filesystem>
 
 using namespace cv;
 using namespace std;
@@ -60,18 +60,18 @@ namespace ViewPointNetwork
 	{
 		namedWindow(windowName, WINDOW_AUTOSIZE);
 		imshow(windowName, image);
-		waitKey(0); // 等待按键
+		waitKey(0); 
 	}
 
-	// 处理图像并提取骨架
+	// Process the image and extract the skeleton
 	cv::Mat RidgeDetection::getRidge(House& house, HeatMap& heat,
 		cv::Mat image, const string& outresultpath, int distType, int markSize, int HouseType)
 	{
-		// 设置边界大小
+		// Set the boundary size
 		int border_size = 10;
-		// 归一化图像像素值0-255
+		// Normalized image pixel value 0-255
 		cv::normalize(image, image, 0, 255, cv::NORM_MINMAX);
-		// 将图像二值化
+		// Binary the image
 		cv::Mat binary;
 		cv::threshold(image, binary, 0, 255, cv::THRESH_BINARY);
 
@@ -79,23 +79,21 @@ namespace ViewPointNetwork
 			cv::line(binary, cv::Point(house.getEdge(i).getBegPoint().X() / heat.getCell(), binary.rows - house.getEdge(i).getBegPoint().Y() / heat.getCell()),
 				cv::Point(house.getEdge(i).getEndPoint().X() / heat.getCell(), binary.rows - house.getEdge(i).getEndPoint().Y() / heat.getCell()), cv::Scalar(0), 3);
 
-		// 在图像周围添加边界
+		// Add a border around the image
 		cv::copyMakeBorder(binary, binary, border_size, border_size, border_size, border_size, cv::BORDER_CONSTANT, 0);
 
-		distType = 2;
-		markSize = 5;
-		if (distType == 1 || distType == 3) {
-			markSize = 3;
-		}
-		// 计算距离变换
+		/*distType = 2;
+		markSize = 5;*/
+		
+		// Calculate the distance transform
 		cv::Mat dis;
 		cv::distanceTransform(binary, dis, distType, markSize);
 		//printMatProperties(dis);
 
-		// 获取距离变换图像的尺寸
+		// Gets the size of the distance transform image
 		int height = dis.rows;
 		int width = dis.cols;
-		// 去除添加的边界区域
+		// Remove the added boundary area
 		cv::Rect roi(border_size, border_size, width - 2 * border_size, height - 2 * border_size);
 		dis = dis(roi).clone();
 		//dis = dis(roi);
@@ -114,117 +112,119 @@ namespace ViewPointNetwork
 			cv::line(profile, cv::Point(house.getEdge(i).getBegPoint().X() / heat.getCell(), profile.rows - house.getEdge(i).getBegPoint().Y() / heat.getCell()),
 				cv::Point(house.getEdge(i).getEndPoint().X() / heat.getCell(), profile.rows - house.getEdge(i).getEndPoint().Y() / heat.getCell()), cv::Scalar(255), 1);
 
-		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_ridges.png", profile);
+		//imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_ridges.png", profile);
+		imwrite(outresultpath + "_ridges.png", profile);
 
-		// 归一化脊线检测结果
+		// Normalized ridge detection results
 		cv::normalize(ridges, ridges, 0, 255, cv::NORM_MINMAX);
-		// 将脊线检测结果二值化
+		// Binarize the ridge detection results
 		//cv::Mat binary_ridges;
 		cv::threshold(ridges, binary, 20, 255, cv::THRESH_BINARY);
 		//cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-		// 去除二值化结果中在房间外的骨架
+		// Remove the skeleton outside the room in the binarization result
 		binary.setTo(0, image == 0);
 
 
 		Mat zhang = fastSkeletonize(binary);
-		//// 显示拼接后的图像
+		//// Displays the combined image
 		cv::Mat profile_2 = zhang.clone();
 		for (int i = 0; i < edgeSize; i++)
 			cv::line(profile_2, cv::Point(house.getEdge(i).getBegPoint().X() / heat.getCell(), profile_2.rows - house.getEdge(i).getBegPoint().Y() / heat.getCell()),
 				cv::Point(house.getEdge(i).getEndPoint().X() / heat.getCell(), profile_2.rows - house.getEdge(i).getEndPoint().Y() / heat.getCell()), cv::Scalar(255), 1);
 
-		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_thin_ridges.png", profile_2);
-		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_zhang_skeleton.png", zhang);
+		/*imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_thin_ridges.png", profile_2);
+		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_zhang_skeleton.png", zhang);*/
+		imwrite(outresultpath + "_thin_ridges.png", profile_2);
+		imwrite(outresultpath + "_zhang_skeleton.png", zhang);
 
 		return zhang;
 	}
 	void printMatProperties(const cv::Mat& mat) {
-		// 输出图像的形状
+		// Output image shape
 		std::cout << "Image shape (height, width): (" << mat.rows << ", " << mat.cols << ")" << std::endl;
 
-		// 输出通道数
+		// Number of output channels
 		std::cout << "Number of channels: " << mat.channels() << std::endl;
 
-		// 输出数据类型
+		// Output data type
 		std::cout << "Data type: " << mat.type() << std::endl;
 
-		// 输出步幅
+		// Output stride
 		std::cout << "Step (bytes per row): " << mat.step << std::endl;
 	}
 
-	// 处理图像并提取骨架
+	// Process the image and extract the skeleton
 	cv::Mat RidgeDetection::getRidge(cv::Mat image, const string& outresultpath, int distType, int markSize, int HouseType)
 	{
-		// 设置边界大小
+		// Set the boundary size
 		int border_size = 10;
-		// 归一化图像像素值0-255
+		
 		cv::normalize(image, image, 0, 255, cv::NORM_MINMAX);
-		// 将图像二值化
+		// Normalized image pixel value 0-255
 		cv::Mat binary;
 		//cv::threshold(normalized, binary, 0, 255, cv::THRESH_BINARY);
 		cv::threshold(image, binary, 0, 255, cv::THRESH_BINARY);
 		//showImage(binary, "house");
 
-		// 在图像周围添加边界
+		// Add a border around the image
 		cv::copyMakeBorder(binary, binary, border_size, border_size, border_size, border_size, cv::BORDER_CONSTANT, 0);
 
-		distType = 2;
-		markSize = 5;
-		if (distType == 1 || distType == 3) {
-			markSize = 3;
-		}
-		// 计算距离变换
+		/*distType = 2;
+		markSize = 5;*/
+		
+		// Calculate the distance transform
 		cv::Mat dis;
 		cv::distanceTransform(binary, dis, distType, markSize);
-		// 获取距离变换图像的尺寸
+		// Gets the size of the distance transform image
 		int height = dis.rows;
 		int width = dis.cols;
-		// 去除添加的边界区域
+		// Remove the added boundary area
 		cv::Rect roi(border_size, border_size, width - 2 * border_size, height - 2 * border_size);
 		dis = dis(roi);
 
-		// 归一化距离变换结果
+		// Normalized distance transform results
 		cv::normalize(dis, dis, 0, 255, cv::NORM_MINMAX);
 
-		// 反转图像
+		// Invert the image
 		dis = 255 - dis;
 
 		cv::Mat ridges;
 		getRoughRidge(dis, ridges);
 		cv::Mat profile = ridges.clone();
 
-		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_ridges.png", profile);
-		// 归一化脊线检测结果
+		imwrite(outresultpath + "_ridges.png", profile);
+		// Normalized ridge detection results
 		cv::normalize(ridges, ridges, 0, 255, cv::NORM_MINMAX);
-		// 将脊线检测结果二值化
+		// Binarize the ridge detection results
 		//cv::Mat binary_ridges;
-		cv::threshold(ridges, binary, 16, 255, cv::THRESH_BINARY);
+		cv::threshold(ridges, binary, 20, 255, cv::THRESH_BINARY);
 		//cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+		binary.setTo(0, image == 0);
 
 		Mat zhang = fastSkeletonize(binary);
-		//// 显示拼接后的图像
+		//// Displays the combined image
 
 		cv::Mat profile_2 = zhang.clone();
 
-		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_thin_ridges.png", profile_2);
-		imwrite(outresultpath + "_distType" + to_string(distType) + "_markSize" + to_string(markSize) + "_zhang_skeleton.png", zhang);
+		imwrite(outresultpath + "_thin_ridges.png", profile_2);
+		imwrite(outresultpath + "_zhang_skeleton.png", zhang);
 
 		return zhang;
 	}
 
-	//创建骨架
+	// Create a skeleton
 	cv::Mat RidgeDetection::creatRidge(House& house, HeatMap& heat,
 		const string& grayImgPath, const string& outresultpath, int houseType)
 	{
-		// 读取图像
+		// Read the image
 		cv::Mat image = imread(grayImgPath, IMREAD_GRAYSCALE);
 		return getRidge(house, heat, image, outresultpath, RT_L2, 5, houseType);
 	}
 
-	//骨架细化--改良zhang方法，类型为cv::Mat
+	// Skeleton refinement -- Modified zhang method, type cv::Mat
 	cv::Mat fastSkeletonize(cv::Mat image) 
 	{
-		// 查找表 (LUT) - 每个可能的 8 位二进制邻域组合都有一个条目。
+		// Lookup Table (LUT) - one entry for every possible 8-bit binary neighborhood combination.
 		int lut[256] = {
 			0, 0, 0, 1, 0, 0, 1, 3, 0, 0, 3, 1, 1, 0, 1, 3, 0, 0, 0, 0, 0, 0,
 			0, 0, 2, 0, 2, 0, 3, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,
@@ -244,14 +244,14 @@ namespace ViewPointNetwork
 		bool first_pass;
 		int neighbors;
 
-		// 获取图像尺寸并添加边界
+		// Get the image size and add borders
 		int rows = image.rows + 2;
 		int cols = image.cols + 2;
 
-		// 初始化骨架图像，并添加边界
+		// Initialize the skeleton image and add borders
 		cv::Mat skeleton = cv::Mat::zeros(rows, cols, CV_8UC1);
 
-		// 将原始图像数据拷贝到骨架图像中
+		// Copy the original image data to the skeleton image
 		image.copyTo(skeleton(cv::Rect(1, 1, image.cols, image.rows)));
 		//skeleton = image(cv::Rect(1, 1, image.cols - 2, image.rows - 2)) > 0;
 		//skeleton(cv::Rect(1, 1, image.cols - 2, image.rows - 2)) = image;
@@ -259,19 +259,19 @@ namespace ViewPointNetwork
 
 		pixel_removed = true;
 
-		// 算法重复细化，直到不再有进一步的细化发生
+		// The algorithm repeats refinements until no further refinements occur
 		while (pixel_removed) {
 			pixel_removed = false;
 
-			// 有两个阶段，在第一阶段，标记为 1 和 3 的像素被移除；
-			// 在第二阶段，标记为 2 和 3 的像素被移除。
+			// There are two stages, in the first stage, the pixels marked 1 and 3 are removed;
+			// In the second stage, the pixels labeled 2 and 3 are removed.
 			for (int pass_num = 0; pass_num < 2; ++pass_num) {
 				first_pass = (pass_num == 0);
 				for (int row = 1; row < rows - 1; ++row) {
 					for (int col = 1; col < cols - 1; ++col) {
-						// 处理前景像素
+						// Process foreground pixels
 						if (skeleton.at<uchar>(row, col) > 0) {
-							// 计算 8 邻域编号
+							// Calculate the 8 neighborhood number
 							neighbors =
 								1 * (skeleton.at<uchar>(row - 1, col - 1) > 0) +
 								2 * (skeleton.at<uchar>(row - 1, col) > 0) +
@@ -282,7 +282,7 @@ namespace ViewPointNetwork
 								64 * (skeleton.at<uchar>(row + 1, col - 1) > 0) +
 								128 * (skeleton.at<uchar>(row, col - 1) > 0);
 
-							// 判断是否移除像素
+							// Determine whether to remove the pixel
 							if ((lut[neighbors] == 1 && first_pass) ||
 								(lut[neighbors] == 2 && !first_pass) ||
 								(lut[neighbors] == 3)) {
@@ -293,7 +293,7 @@ namespace ViewPointNetwork
 						}
 					}
 				}
-				// 更新骨架图像
+				// Update the skeleton image
 				cleaned_skeleton.copyTo(skeleton);
 
 			}
@@ -302,7 +302,7 @@ namespace ViewPointNetwork
 
 		cv::threshold(skeleton, skeleton, 0, 255, cv::THRESH_BINARY);
 
-		// 返回去掉边界的最终骨架图像
+		// Returns the final skeleton image with the border removed
 		return skeleton;
 	}
 }

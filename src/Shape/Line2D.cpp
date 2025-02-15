@@ -266,16 +266,16 @@ namespace ViewPointNetwork
 	
 	std::pair<Point2D, Point2D> Line2D::intersectCircle(double x0, double y0, double r) const
 	{
-		// 将直线方程重写为 d = x * cos_phi + y * sin_phi
+		// Rewrite the line equation as d = x * cos_phi + y * sin_phi
 		double dx = d - x0 * m_cosphi - y0 * m_sinphi;
 
-		// 根据几何推导，计算delta，用于判断是否有交点
+		// Based on geometric derivation, calculate delta to determine whether there are intersection points
 		double delta = r * r - dx * dx;
 		if (delta < 0) {
 			throw std::runtime_error("No intersection, the m_line does not intersect the circle.");
 		}
 
-		// 计算交点坐标
+		// Calculate the intersection coordinates
 		double sqrt_delta = std::sqrt(delta);
 
 		Point2D p1, p2;

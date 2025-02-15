@@ -7,7 +7,7 @@ using namespace cv;
 
 namespace ViewPointNetwork
 {
-	//记录边的位置关系
+	// Record the position relationship of the edge
 	BSPNode::BSPNode()
 	{
 		m_edge = Edge2D();
@@ -47,7 +47,7 @@ namespace ViewPointNetwork
 
 			if (side0 ^ side1)
 			{
-				if (side0 + side1 < 1) // 一个为-1  ;
+				if (side0 + side1 < 1) // One is -1;
 				{
 					if (side0 + side1 == 0) frontLines.push_back(curEdge);
 					else backLines.push_back(curEdge);
@@ -66,7 +66,7 @@ namespace ViewPointNetwork
 					frontLines.emplace_back(p, curEdge.getEndPoint());
 				}
 			}
-			else if (side0)  // 两个都在直线上 也放入前边
+			else if (side0)  // Both on the line also put in the front
 				frontLines.push_back(curEdge);
 			else
 				backLines.push_back(curEdge);

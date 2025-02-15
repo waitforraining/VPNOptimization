@@ -75,7 +75,7 @@ namespace ViewPointNetwork
 		else { return 0; };
 	}
 
-	//获取向量的极角（弧度）（从x轴正方向开始逆时针）
+	// Obtain the polar Angle (radian) of the vector (counterclockwise from the positive X-axis)
 	double Vector2D::getTheta() const
 	{
 		if (x[0] == 0.0) {

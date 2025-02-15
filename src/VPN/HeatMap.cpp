@@ -123,7 +123,7 @@ namespace ViewPointNetwork
 			}
 		}
 	}
-	// 对某一条边 生成热力图
+	// Generate a heat map for an edge
 	void HeatMap::generateOneEdgeHeat(House& house, Edge2D& edge, double r_min, double r_max)
 	{
 		Station s;
@@ -151,7 +151,7 @@ namespace ViewPointNetwork
 				minV = min(minV, m_value[i][j]);
 			}
 		}
-		// 归一化
+		// normalization
 		//for (int i = 0; i < m_width; i++)
 		//{
 		//	for (int j = 0; j < m_height; j++)
@@ -161,7 +161,7 @@ namespace ViewPointNetwork
 		//}
 	}
 
-	//归一化
+	//normalization
 	void HeatMap::normalization(House house, vector<vector<int>> tmp)
 	{
 		double maxV = 0, minV = INT_MAX;
@@ -281,7 +281,7 @@ namespace ViewPointNetwork
 		}
 		else
 		{
-			cv::flip(figure, figure, 0); // 0 表示上下翻转
+			cv::flip(figure, figure, 0); // 0 indicates upside down
 
 			vector<Station> stations;
 			for (int i = 0; i < stations.size(); i++)
@@ -359,7 +359,7 @@ namespace ViewPointNetwork
 
 		drawEdges(figure, *this, house.getEdges(), m_cell, Scalar(0, 0, 0), 1, house.getType());
 
-		cv::flip(figure, figure, 0); // 0 表示上下翻转
+		cv::flip(figure, figure, 0); // 0 indicates upside down
 		cv::imwrite(name + "_RGBheat.png", figure);
 	}
 
@@ -393,7 +393,7 @@ namespace ViewPointNetwork
 			}
 		}
 
-		cv::flip(img, img, 0); // 0 表示上下翻转
+		cv::flip(img, img, 0); // 0 indicates upside down
 		return img;
 	}
 
@@ -415,7 +415,7 @@ namespace ViewPointNetwork
 			}
 		}
 
-		cv::flip(figure, figure, 0); // 0 表示上下翻转
+		cv::flip(figure, figure, 0); // 0 indicates upside down
 		cv::imwrite(name + "_GRAYheat.png", figure);
 	}
 
@@ -426,7 +426,7 @@ namespace ViewPointNetwork
 		double stationRadiusMin = r_min;
 		double stationRadiusMax = r_max;
 		House house(vecEdges);
-		//初始化BSP，root=离中心点最近的边
+		//Initialize BSP, root= the edge closest to the center point
 
 		HeatMap heatMap(house, cell);
 		heatMap.generate(house, stationRadiusMin, stationRadiusMax);

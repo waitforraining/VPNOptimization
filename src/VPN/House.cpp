@@ -47,7 +47,9 @@ namespace ViewPointNetwork
 		writeEdges("move_min", m_edges);
 
 		initializeBspTree();
+		saveBspToCsv();
 	}
+	
 	void getBspEdges(vector<Edge2D>& edges,BSPNode* bspNode)
 	{
 		if (!bspNode) return;
@@ -61,6 +63,42 @@ namespace ViewPointNetwork
 		vector<Edge2D> edges;
 		getBspEdges(edges, m_bspRoot.get());
 		writeEdges("bsp", edges);
+	}
+
+	void House::saveBspToCsv()
+	{
+		BSPNode* root = getBspRoot().get();
+
+		std::ofstream outFile("bspEdges.csv");
+		if (!outFile.is_open()) {
+			std::cerr << "Failed to open file for writing\n";
+			return;
+		}
+
+		// Writes to the header of the CSV file
+		
+		outFile << "Node Name, Edge Length\n";
+
+		saveBspTree(root, outFile);
+
+		outFile.close();
+	}
+
+	void House::saveBspTree(BSPNode* node, std::ofstream& outFile)
+	{
+		// If the node is empty, return it directly
+		if (node == nullptr) {
+			return;
+		}
+
+		// Calculates the edge length of the current node
+		double edgeLength = node->getEdge().Length();
+
+		outFile << node->getName() << "," << edgeLength << "\n";
+
+		// Recursively traverse the left and right subtrees
+		saveBspTree(node->frontNode, outFile);
+		saveBspTree(node->backNode, outFile);
 	}
 
 	int House::getNearstEdgeInd(const Point2D & p) const
@@ -96,24 +134,26 @@ namespace ViewPointNetwork
 			if (e.isCover(p)) {
 				return PT_ONWALL;
 			}
-			// 处理水平边：如果边平行于射线的水平线，跳过
+			// Handle horizontal edges: 
+			//If the edge is parallel to the horizontal line of the ray, skip
 			if (p1.Y() == p2.Y()) {
-				continue;  // 如果是水平边且不在射线范围内，跳过该边
+				continue;  // If it is a horizontal edge and not in the ray range, skip the edge
 			}
 
-			// 判断点是否在边的垂直方向范围内
+			// Determine whether the point is within the vertical range of the edge
 			if ((p1.Y() > p.Y()) != (p2.Y() > p.Y())) {
-				// 计算交点的横坐标
+				// Calculate the abscissa of the intersection
 				double xIntersection = p1.X() + (p.Y() - p1.Y()) * (p2.X() - p1.X()) / (p2.Y() - p1.Y());
 
-				// 如果交点在点的右侧，则算作一次交点
+				// If the intersection is to the right of the point, it counts as a single intersection
 				if (xIntersection > p.X()) {
-					flag = !flag;  // 每次交点出现，状态取反
+					flag = !flag;  // Every time an intersection occurs, the state is reversed
 				}
 			}
 		}
 
-		return flag ? PT_INSIDE : PT_OUTSIDE;  // 如果交点数为奇数，返回 1（内部）；偶数，返回 0（外部）
+		return flag ? PT_INSIDE : PT_OUTSIDE;  // If the number of intersections is odd, return 1 (inside); 
+		//Even number, return 0 (external)
 	}
 
 	PositionType House::position(int indX, int indY, double cell) const

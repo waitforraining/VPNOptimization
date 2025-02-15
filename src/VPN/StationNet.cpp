@@ -41,7 +41,7 @@ namespace ViewPointNetwork
 
 	void StationNet::computeMat()
 	{
-		//邻接矩阵  需要对称性的overlapPercent
+		// The adjacency matrix requires an overlapPercent symmetry
 		double overlapPercent;
 		for (size_t i = 0; i < m_stationSize; i++) 
 		{
@@ -61,7 +61,7 @@ namespace ViewPointNetwork
 			}
 		}
 
-		//连通矩阵
+		// Connected matrix
 		m_conMat = m_adjacentMat;
 		vector<bool> vis(m_stationSize);
 		for (size_t i = 0; i < m_stationSize; ++i)
@@ -136,19 +136,19 @@ namespace ViewPointNetwork
 		{
 			const Station& s = m_stations[i];
 			overlapPercent = s0.getOverlapPercent(s);
-			//对称
+			// Symmetry
 			m_overlapMat[addStationInd][i] = overlapPercent;
 			m_overlapMat[i][addStationInd] = overlapPercent;
 
 			if (overlapPercent >= m_minOverlapPercent)
 			{
-				// 临接矩阵
+				// Temporary connection matrix
 				m_adjacentMat[addStationInd][i] = true;
 				m_adjacentMat[i][addStationInd] = true;
 			}
 			else
 			{
-				//更新连通矩阵
+				// Update the connected matrix
 				for (size_t j = 0; j < addStationInd; ++j) {
 					if (i == j) continue;
 					if (m_conMat[addStationInd][j] && m_conMat[j][i]) {

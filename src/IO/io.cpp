@@ -51,7 +51,7 @@ namespace ViewPointNetwork
 		double x, y;
 		while (std::getline(inputFile, line)) {
 			if (line[0] == '#') {
-				continue;  // 跳过以#开头的行
+				continue;  // Skip lines starting with #
 			}
 			std::istringstream iss(line);
 			if (iss >> tmp >> x >> y) {
@@ -78,7 +78,7 @@ namespace ViewPointNetwork
 		int ind0, ind1;
 		while (std::getline(inputFile, line)) {
 			if (line[0] == '#') {
-				continue;  // 跳过以#开头的行
+				continue;  // Skip lines starting with #
 			}
 			std::istringstream iss(line);
 			if (iss >> lineNumber >> pointNums >> attributeNums) {
@@ -207,13 +207,14 @@ namespace ViewPointNetwork
 
 	}
 
-	void IODXF::writeEdges(const std::string& outFileName, const std::vector<Edge2D>& edges)
+	/*void IODXF::writeEdges(const std::string& outFileName, const std::vector<Edge2D>& edges)
 	{
 		GDALDriver* poDriver;
 
 		GDALAllRegister();
 
 		poDriver = GetGDALDriverManager()->GetDriverByName("DXF");
+
 		if (poDriver == NULL)
 		{
 			return;
@@ -221,6 +222,7 @@ namespace ViewPointNetwork
 
 		GDALDataset* poDS;
 		poDS = poDriver->Create((outFileName + ".DXF").c_str(), 0, 0, 0, GDT_Unknown, NULL);
+
 		if (poDS == NULL)
 		{
 			printf("Creation of output file failed.\n");
@@ -247,7 +249,77 @@ namespace ViewPointNetwork
 		}
 		GDALClose(poDS);
 
+	}*/
+
+	void IODXF::writeEdges(const std::string& outFileName, const std::vector<Edge2D>& edges)
+	{
+		GDALDriver* poDriver;
+
+		// 注册所有驱动
+		GDALAllRegister();
+
+		// 获取DXF驱动
+		poDriver = GetGDALDriverManager()->GetDriverByName("DXF");
+		if (poDriver == NULL)
+		{
+			printf("DXF driver not available.\n");
+			return;
+		}
+
+		// create DXF file
+		GDALDataset* poDS = poDriver->Create((outFileName + ".DXF").c_str(), 0, 0, 0, GDT_Unknown, NULL);
+		
+		if (poDS == NULL)
+		{
+			printf("Creation of output file failed.\n");
+			return;
+		}
+
+		OGRLayer* poLayer = poDS->CreateLayer("lines", NULL, wkbLineString, NULL);
+		if (poLayer == NULL)
+		{
+			printf("Layer creation failed.\n");
+			GDALClose(poDS);
+			return;
+		}
+
+		for (size_t i = 0; i < edges.size(); ++i)
+		{
+			const Edge2D& edge = edges[i];
+
+			OGRLineString lineString;
+			lineString.addPoint(edge.getBegPoint().X(), edge.getBegPoint().Y(), 0.0);  // 添加起点
+			lineString.addPoint(edge.getEndPoint().X(), edge.getEndPoint().Y(), 0.0);  // 添加终点
+
+			OGRFeature* feature = OGRFeature::CreateFeature(poLayer->GetLayerDefn());
+			feature->SetGeometry(&lineString);
+
+			if (poLayer->CreateFeature(feature) != OGRERR_NONE)
+			{
+				printf("Failed to create feature for edge %zu\n", i);
+			}
+
+			OGRFeature::DestroyFeature(feature);
+			
+		}
+		
+		GDALClose(poDS);
+
+		// add the end flag
+		FILE* file = fopen((outFileName + ".DXF").c_str(), "a"); // append mode
+		if (file)
+		{
+			fprintf(file, "  0\nSEQEND\n");
+			fprintf(file, "  0\nENDSEC\n");
+			fprintf(file, "  0\nEOF\n");
+			fclose(file);
+		}
 	}
+
+
+
+
+
 
 	void readEdges(const std::string& inFileName, std::vector<Edge2D>& edges, const std::string& className)
 	{

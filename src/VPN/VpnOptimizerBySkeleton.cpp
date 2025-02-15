@@ -6,10 +6,11 @@ namespace ViewPointNetwork
 	OptSkelParam::OptSkelParam()
 	{
 		houseType = HT_Indoor;
-		cell = 0.01;
+		cell = 0.025;
 		stationRadiusMin = 0.8;
 		stationRadiusMax = 30.0;
-		overlapThresh = 0.5;
+		overlapThresh = 0.4;
+		scoreThresh = 1.0;
 		denseStep = 0.2;
 	}
 
@@ -106,10 +107,11 @@ namespace ViewPointNetwork
 				continue;
 			}
 
-			//综合考虑得分和与所有currentStations平均重叠度，选出最优站点
+			// The best station was selected, 
+			//taking into account the score and average overlap with all currentStations
 			int maxInd = selectBestStation(maxScanInds);
 
-			//更新扫描矩阵
+			// Update the scan matrix
 			updateScanMat(maxInd);
 			updateAdjcentStation(maxInd, remainStations, adjStations);
 
@@ -119,20 +121,20 @@ namespace ViewPointNetwork
 			remainStations.erase(maxInd);
 			
 			cout << "--------------------" << endl;
-			std::cout << "站点优化第" << m_groupInd << "个群集第" << loop++ << "轮." << endl;
-			std::cout << "已添加初始站点：" << maxInd << "号." << endl;
-			std::cout << "获取单个站点扫描最多边数：" << maxScanCnt << "    剩余未扫描边数：" << m_unScanedCnt << endl;
-			std::cout << "当前优化站点数：" << m_usedStationInds.size() << endl;
+			std::cout << "site optimization the " << m_groupInd << " clustered and the " << loop++ << " wheel." << endl;
+			std::cout << "have been added the initial site: no " << maxInd << "." << endl;
+			std::cout << "Gets the maximum number of scans for a single site: " << maxScanCnt << "    Number of remaining unscanned edges: " << m_unScanedCnt << endl;
+			std::cout << "Number of optimized sites currently: " << m_usedStationInds.size() << endl;
 		}
 		
 		
-		if (m_house.getType() == HT_Outdoor) {
-			//计算路径和连通矩阵
+		if (m_house.getType() == HT_Outdoor || m_usedStationInds.size() < 10) {
+			// Calculate the path and connectivity matrix
 			computePathsAndMat();
-			//闭合网络
+			// Close the network
 			closeNet();
 		}
-		std::cout << "站点优化完毕." << endl;
+		std::cout << "Site optimization complete." << endl;
 		std::cout << "********************" << endl;
 	}
 
@@ -144,7 +146,7 @@ namespace ViewPointNetwork
 
 	void VpnOptimizerBySkeleton::initializeHeatMap()
 	{
-		cout << "construct heatMap" << endl;
+		cout << "construct heatMap..." << endl;
 		m_heatMap = HeatMap(m_house, m_param.cell);
 		bool cache = false;
 		if (!cache || !m_heatMap.loadGrayImg(m_houseName + "_" + to_string(m_param.cell) + "_GRAYheat.png"))
@@ -154,15 +156,17 @@ namespace ViewPointNetwork
 				m_param.stationRadiusMin, m_param.stationRadiusMax, m_param.scoreThresh);
 
 			m_heatMap.saveBGR_YellowOrange(m_house, m_houseName, false);
-		}
-		m_heatMap.saveGRAY(m_house, m_houseName + "_" + to_string(m_param.cell));
 
+			m_heatMap.saveGRAY(m_house, m_houseName + "_" + to_string(m_param.cell));
+		}
 	}
 
 
 	void VpnOptimizerBySkeleton::initializeSklGraph()
 	{
-		cv::Mat grayImg = m_heatMap.getGRAYImg();
+		//cv::Mat grayImg = m_heatMap.getGRAYImg();
+		//debug
+		cv::Mat grayImg = cv::imread(m_houseName + "_" + to_string(m_param.cell) + "_GRAYheat.png", cv::IMREAD_GRAYSCALE);
 		RidgeDetection rd;
 		cv::Mat skeletonImg = rd.getRidge(m_house, m_heatMap, grayImg, m_houseName, RT_L2, 5, m_param.houseType);
 
@@ -257,17 +261,17 @@ namespace ViewPointNetwork
 		drawWholeHouse(m_houseName);
 		
 		StationNet netSn(m_stations);
-		netSn.writeStationOverlapMatrix("overlap.csv");
+		netSn.writeStationOverlapMatrix(m_houseName + "_overlap.csv");
 
 	}
 	void VpnOptimizerBySkeleton::drawWholeHouse(const string& outresultpath) const
 	{
-		//展示初始站点房屋图
+		// Show the initial site house map
 		cv::Mat heatRgbScore = cv::imread(m_houseName + "_RGBheat.png", cv::IMREAD_COLOR);
 		if (heatRgbScore.empty()) {
 			std::cerr << "Error: Could not read the image." << std::endl;
 			return;
-			// 处理错误情况
+			// Handle error situations
 		}
 		cv::Mat figure;
 
@@ -295,12 +299,12 @@ namespace ViewPointNetwork
 		double overlapThresh = m_param.overlapThresh;
 		double r_min = m_param.stationRadiusMin; 
 		double r_max = m_param.stationRadiusMax;
-		cout << "添加连接站点以保证重叠度..." << endl;
+		cout << "Add connected sites to ensure overlap..." << endl;
 
 		bool flag = false;
 
 		queue<pair<int, int>> pq;
-		int jointNum = m_sklGraph.getJointNum();;
+		int jointNum = m_sklGraph.getJointNum();
 		vector<vector<double>> stationOverlapMat = m_stationNet.getOverlapMat();
 		for (size_t i = 0; i < jointNum; ++i)
 		{
@@ -331,10 +335,10 @@ namespace ViewPointNetwork
 			SkeletonJoint& p2 = m_sklGraph.crossInd2Point[j];
 
 			SkeletonJoint connectStation = m_sklGraph.getPath(i, j)[pathSize / 2];
-			connectStation.setJunctionType(JunctionType::JT_ADDOVERLAP);//为保证重叠度而添加的路径中心点
+			connectStation.setJunctionType(JunctionType::JT_ADDOVERLAP);// Path center point added to ensure overlap
 
 			m_sklGraph.updatePathsByNewJoint(i, j, pathSize / 2, connectStation);
-			//更新stationNet
+			// Update stationNet
 			Station s(connectStation.Y() * m_heatMap.getCell(),
 				(1.0 * m_heatMap.getYLen() - connectStation.X()) * m_heatMap.getCell(),
 				r_min, r_max);
@@ -347,7 +351,7 @@ namespace ViewPointNetwork
 			<< " p2: " << m_sklGraph.point2CrossInd[p2] << "-(" << p2.X() << "," << p2.Y() << ")"
 			<< " connectStation: " << m_sklGraph.getJointNum() - 1 << "-(" << connectStation.X() << "," << connectStation.Y() << ")" << endl;
 		}
-		cout << "连接站点添加完毕." << endl;
+		cout << "Connection site added complete." << endl;
 	}
 
 
@@ -419,8 +423,6 @@ namespace ViewPointNetwork
 		}
 	}
 
-
-	//TODO 更新的不仅仅是扫描矩阵
 	void VpnOptimizerBySkeleton::updateScanMat(int maxScanInd)
 	{
 		auto maxScanEdges = m_scanMat[maxScanInd];
@@ -430,11 +432,10 @@ namespace ViewPointNetwork
 				m_edgeScanned[k] = true;
 		}
 
-		// 更新扫描矩阵
-		//如果迭代到maxScanEdges，是否也要修改？
-		for (auto& seeEdges : m_scanMat) {  // 使用引用以便修改原始数据
+		// Update the scan matrix
+		for (auto& seeEdges : m_scanMat) {  // Use references to modify the original data
 			for (int k = 0; k < maxScanEdges.size(); k++) {
-				if (maxScanEdges[k]) {  // 无需显式比较 true
+				if (maxScanEdges[k]) {  
 					seeEdges[k] = false;
 				}
 			}
@@ -464,8 +465,9 @@ namespace ViewPointNetwork
 		return maxOvlp;
 	}
 
-	//如果补充边相同，那么从里面挑选与现有站点组重叠度最高的站点
-	//最好是选择原始骨架点
+	// If the supplementary edge is the same, 
+	// select the site with the highest overlap with the existing site group
+	// It is best to choose the original skeleton point
 	int VpnOptimizerBySkeleton::selectBestStation(const vector<int>& candidateInds)
 	{
 		if (candidateInds.size() == 1)
@@ -477,9 +479,10 @@ namespace ViewPointNetwork
 		for (size_t i = 0; i < candidateInds.size(); i++) {
 			temInd = candidateInds[i];
 
-			if (m_usedStationInds.empty())//首次选择，无种子站，用最大扫描得分，后续可以用骨架点
+			if (m_usedStationInds.empty())// First selection, no seed station, with the maximum scan score, subsequent can use skeleton points
 				temScore = m_stationNet.getStation(temInd).getScanedScore();
-			else//如果已经有种子站，则选择与这些种子站重叠度最大的站
+			else// If there are already seed stations, 
+				//select the station with the greatest overlap with these seed stations
 				temScore = getMaxOverlap(temInd);
 
 			if (temScore > maxScore) {
@@ -522,19 +525,20 @@ namespace ViewPointNetwork
 
 	void VpnOptimizerBySkeleton::computePathsAndMat()
 	{
-		//int n = m_stations.size(); // 站点数量
+		//int n = m_stations.size(); // Number of sites
 		int n = m_usedStationInds.size();
-		// 初始化 stationPaths 为三维向量 [n][n][]
+		// Initialize stationPaths as 3D vectors [n][n][]
 		m_stationPaths.resize(n);
 		for (int i = 0; i < n; ++i) {
 			m_stationPaths[i].resize(n);
 		}
 
-		// 初始化 conMat 为二维布尔矩阵 [n][n]，默认值为 false
+		// Initializes conMat as a two-dimensional Boolean matrix [n][n] with a default value of false
 		m_conMat.resize(n, std::vector<bool>(n, false));
 		
 
 		double cell = m_heatMap.getCell();
+		vector<Station> allInitStations = m_stationNet.getStations();
 
 		for (size_t i = 0; i < m_usedStationInds.size() - 1; ++i) {
 			int srcInd = m_usedStationInds[i];
@@ -542,7 +546,7 @@ namespace ViewPointNetwork
 				int dstInd = m_usedStationInds[j];
 
 				bool flag = true;
-				//判断是否直接连通（中间没有其他站点）
+				// Determine whether it is directly connected (there is no other site in the middle)
 				vector<SkeletonJoint> SrcToDstPath = m_sklGraph.paths[srcInd][dstInd];
 
 				vector<int> midStationInds;
@@ -551,19 +555,20 @@ namespace ViewPointNetwork
 				for (size_t m = 0; m < SrcToDstPath.size(); ++m) {
 					/*for (size_t j = 0; j < usedStationInds.size(); ++j) {
 						staInd = usedStationInds[j];*/
-					for (size_t k = 0; k < m_stations.size();++k){
+					for (size_t k = 0; k < allInitStations.size();++k){
 						staInd = k;
 						if (staInd == srcInd || staInd == dstInd) {
 							continue;
 						}
+						
 						Station s(SrcToDstPath[m].Y() * cell,
-							(1.0 * m_sklGraph.getSkeleton().rows - SrcToDstPath[i].X()) * cell,
+							(1.0 * m_sklGraph.getSkeleton().rows - SrcToDstPath[m].X()) * cell,
 							m_param.stationRadiusMin, m_param.stationRadiusMax);
 						/*Point2D sPnt = s.getThisPoint();
 						if (sPnt == m_stations[staInd].getThisPoint()) {*/
-						if (s == m_stations[staInd]){
+						if (s == allInitStations[staInd]){
 							//midStationInds.push_back(staInd);
-							//DOTO解决为什么有重复站点的问题，而不是判断不添加
+							//DOTO solve the problem of why there are duplicate sites instead of deciding not to add them
 							if (find(midStationInds.begin(), midStationInds.end(), staInd) == midStationInds.end()) {
 								midStationInds.push_back(staInd);
 							}
@@ -590,7 +595,7 @@ namespace ViewPointNetwork
 	{
 		cout << "--------------------" << endl;
 		cout << "********************" << endl;
-		cout << "开始闭合站点网络..." << endl;
+		cout << "Start closing the site network..." << endl;
 		const auto& stationOverlapMat = m_stationNet.getOverlapMat();
 		size_t oriSize = m_usedStationInds.size();
 		vector<int> midStationInds;
@@ -605,7 +610,7 @@ namespace ViewPointNetwork
 			int curInd = srcInd;
 			for (size_t j = i + 1; j < oriSize; ++j) {
 				int dstInd = m_usedStationInds[j];
-				//连通，重叠度不一定够
+				// Connectivity, overlap may not be enough
 				if (m_conMat[i][j]) {
 					double srcToDstOverlap = stationOverlapMat[srcInd][dstInd];
 					cout << "overlap" << i << " to " << j << ": " << srcToDstOverlap << endl;
@@ -623,11 +628,11 @@ namespace ViewPointNetwork
 					if (midStationInds.size() == 0) {
 						continue;
 					}
-					if (i == 12 && j == 21) {
+					/*if (i == 12 && j == 21) {
 						cout << "do" << endl;
-					}
+					}*/
 					while (true) {
-						//nextStartInd表示下一轮循环寻找连接点的开始索引号
+						//nextStartInd Indicates the start index number for the next loop to find the join point
 						double maxOverlapToDes = 0.0;
 						for (; startInd < midStationInds.size(); startInd++) {
 							int midInd = midStationInds[startInd];
@@ -653,12 +658,12 @@ namespace ViewPointNetwork
 							pathVisited = true;
 							break;
 						}
-						//重复添加同一个点导致死循环，DOTO解决问题
+						// Adding the same point repeatedly causes an endless loop. TODO resolves the problem
 						if (!conInds.empty() && conInd == conInds[conInds.size() - 1]) {
 							break;
 						}
 						if (conInd == -1) {
-							cout << "路径上找不到闭合点.退出." << endl;
+							cout << "No closure found on path.Exit." << endl;
 							break;
 						}
 						//cout << "conInd:" << conInd << endl;
@@ -678,7 +683,7 @@ namespace ViewPointNetwork
 					for (size_t i = 0; i < conInds.size(); ++i) {
 						m_usedStationInds.push_back(conInds[i]);
 						m_sklGraph.color_type.push_back(0);
-						cout << "添加闭合站点号: " << conInds[i] << "    当前优化站点数: " << m_usedStationInds.size() << endl;
+						cout << "Add closed site number: " << conInds[i] << "    Number of currently optimized sites: " << m_usedStationInds.size() << endl;
 					}
 					midStationInds.clear();
 					conInds.clear();
@@ -718,7 +723,7 @@ namespace ViewPointNetwork
 		if (m_groupInd == 0) return;
 		std::array<int, 2> maxOverlapInd;
 
-		cout << "为群集间添加连接点..." << endl;
+		cout << "Add connection points between clusters..." << endl;
 		double maxOverlap = getGroupOverlapMaxStation(m_groupInd, maxOverlapInd);
 		if (maxOverlap >= m_param.overlapThresh
 			|| maxOverlap < 0) return;
@@ -746,7 +751,7 @@ namespace ViewPointNetwork
 		}
 
 		if (midStationInds.empty()) {
-			cout << "未找到群集连接点." << endl;
+			cout << "Cluster connection point not found." << endl;
 			return;
 		}
 		const auto& stationOverlapMat = m_stationNet.getOverlapMat();
@@ -755,7 +760,7 @@ namespace ViewPointNetwork
 		int curInd = stationInd0;
 		vector<int> conInds;
 		while (true) {
-			//nextStartInd表示下一轮循环寻找连接点的开始索引号
+			//nextStartInd Indicates the start index number for the next loop to find the join point
 			double maxOverlapToDes = 0.0;
 			int conInd = -1;
 
@@ -771,12 +776,12 @@ namespace ViewPointNetwork
 					nextStartInd = startInd + 1;
 				}
 			}
-			//重复添加同一个点导致死循环，DOTO解决问题
+			// Adding the same point repeatedly causes an endless loop. TODO resolves the problem
 			if (!conInds.empty() && conInd == conInds[conInds.size() - 1]) {
 				break;
 			}
 			if (conInd == -1) {
-				cout << "路径上找不到连接点.退出." << endl;
+				cout << "No join point found on path.Exit." << endl;
 				break;
 			}
 
@@ -792,11 +797,11 @@ namespace ViewPointNetwork
 			m_usedStationInds.push_back(conInds[i]);
 			m_groupStationUMap[m_groupInd].push_back(conInds[i]);
 			remainStations.erase(conInds[i]);
-			cout << "添加连接站点号: " << conInds[i] << endl;
+			cout << "Add the connection site: no " << conInds[i] << endl;
 		}
 
-		cout << "群集连接点添加完毕." << endl;
-		cout << "当前优化站点数: " << m_usedStationInds.size() << endl;
+		cout << "Cluster connection point added complete." << endl;
+		cout << "Number of optimized sites currently: " << m_usedStationInds.size() << endl;
 		std::cout << "********************" << endl;
 	}
 
@@ -820,7 +825,7 @@ namespace ViewPointNetwork
 			adjStations.erase(curInd);
 
 		const auto& stationOverlapMat = m_stationNet.getOverlapMat();
-		//查找当前站点的邻接点，并加入到邻接站序列
+		// Finds the adjacency of the current site and adds it to the adjacency sequence
 		for (auto remainStationInd: remainStations) {
 			if (remainStationInd == curInd) continue;
 			if (adjStations.count(remainStationInd)) continue;

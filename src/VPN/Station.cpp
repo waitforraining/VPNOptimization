@@ -9,7 +9,7 @@ using namespace std;
 
 namespace ViewPointNetwork
 {
-	//Station类初始化函数，缺省函数，先初始化父类
+	//Station class initialization function, default function, initializes the parent class first
 	Station::Station() :Point2D()
 	{
 		m_scanedLen = 0.0;
@@ -20,7 +20,8 @@ namespace ViewPointNetwork
 		m_maxScanedAngle = 0.0;
 	}
 
-	//Station类初始化函数，传入点的二维坐标，先初始化父类
+	//Station class initialization function, passing the two-dimensional coordinates of the point, 
+	//first initialize the parent class
 	Station::Station(double x, double y, double r_min, double r_max) :Point2D(x, y)
 	{
 		m_scanedLen = 0;
@@ -31,7 +32,8 @@ namespace ViewPointNetwork
 		m_maxScanedAngle = 0.0;
 	}
 
-	//Station类的初始化函数，传入一个父类对象，先初始化父类
+	//Station class initialization function, passed a superclass object, 
+	//first initialize the superclass
 	Station::Station(const Point2D& p, double r_min, double r_max) :Point2D(p)
 	{
 		m_scanedLen = 0;
@@ -42,7 +44,7 @@ namespace ViewPointNetwork
 		m_maxScanedAngle = 0.0;
 	}
 
-	//Station对象的属性初始化
+	// Initialize the properties of the Station object
 	void Station::initial()
 	{
 		m_edgeScanned.clear();
@@ -136,7 +138,7 @@ namespace ViewPointNetwork
 		writeEdges(prefix, vecEdges);
 	}
 
-	//获取站点对边的扫描角度
+	// Get the scanning Angle of the opposite side of the site
 	vector<vector<double>> Station::getEdgeAngle(const Edge2D & edge) const
 	{
 		vector<double> theta;
@@ -171,25 +173,25 @@ namespace ViewPointNetwork
 		}
 	}
 
-	//获取站点对扫描到的边区域
+	// Gets the scanned side area of the site pair
 	const map<vector<double>, Edge2D>& Station::getScanedEdges() const
 	{
 		return m_edgeScanned;
 	}
 
-	//返回站点到所有边的距离
+	// Return the distance from the site to all sides
 	vector<double> Station::getDist2Edge() const
 	{
 		return m_dist2Edge;
 	}
 
-	//获取站点扫描得分
+	// Get site scan score
 	double Station::getScanedScore() const
 	{
 		return m_scanedScore;
 	}
 
-	//通过扫描角计算扫描到的某条边的临界点（即边的一小段）
+	// Calculate the critical point of a scanned edge (i.e. a small section of an edge) by scanning the Angle.
 	Point2D Station::getPoint(const Edge2D & edge, double theta, double r1) const
 	{
 		vector<Point2D> vecPnts;
@@ -232,7 +234,7 @@ namespace ViewPointNetwork
 		return Point2D(x, y);
 	}
 
-	//通过扫描角计算扫描到的某条边的临界点（即边的一小段）
+	// Calculate the critical point of a scanned edge (i.e. a small section of an edge) by scanning the Angle.
 	Point2D Station::getPoint(const Edge2D& edge, double theta) const
 	{
 		Line2D line0(-cos(theta), sin(theta), sin(theta) * m_x - cos(theta) * m_y);
@@ -254,7 +256,7 @@ namespace ViewPointNetwork
 		if (edge.getLine2D().Online(*this))
 			return ;
 
-		vector<vector<double>> angles = getEdgeAngle(edge);//整条边的扫描角度
+		vector<vector<double>> angles = getEdgeAngle(edge);// Scanning Angle of the entire edge
 		vector<vector<double>> addScanAngles;
 		vector<double> tmpAngle(2);;
 		auto scanIt = m_edgeScanned.begin();
@@ -330,7 +332,7 @@ namespace ViewPointNetwork
 
 	}
 
-	//获取站点扫描长度
+	// Get the site scan length
 	void Station::computeScanLength()
 	{
 		m_scanedLen = 0;
@@ -338,18 +340,18 @@ namespace ViewPointNetwork
 			m_scanedLen += itr->second.Length();
 	}
 
-	//获取某站点的对所有扫描边的得分总和
+	// Gets the total score of a site for all scanned edges
 	void Station::computeScanAngle()
 	{
 		double score = 0, scoreTem;
-		double angle;
+		//double angle;
 
 		for (auto itr = m_edgeScanned.begin(); itr != m_edgeScanned.end(); itr++) {
 			if (itr->second.Length() == 0.0) continue;
 			scoreTem = getScore(itr->second);
 			score += scoreTem;
 
-			angle = itr->first[1] - itr->first[0];
+			//angle = itr->first[1] - itr->first[0];
 		}
 		m_scanedScore = score;
 	}
@@ -431,16 +433,16 @@ namespace ViewPointNetwork
 		return rst;
 	}
 
-	//考虑外盲区和内盲区
+	// Consider external and internal blind spots
 	double Station::getScore(const Edge2D& e) const
 	{
-		// 视场角
+		// Field of view Angle
 		double d = e.getLine2D().Distance(*this);
 		if (d >= m_rMax) {
 			return 0.0;
 		}
 		else if (d >= m_rMin) {
-			//直线与外圆交线
+			// The line intersects the outer circle
 			auto crosses = e.getLine2D().intersectCircle(m_x, m_y, m_rMax);
 			Edge2D circleEdge(crosses.first, crosses.second);
 			Edge2D overlapEdge = e.Overlap(circleEdge);
@@ -454,12 +456,12 @@ namespace ViewPointNetwork
 			return max(overlapAngle, 0.0);
 		}
 		else {
-			//直线与内圆交线
+			// The line intersects the inner circle
 
 			auto crosses_min = e.getLine2D().intersectCircle(m_x, m_y, m_rMin);
 			Edge2D circleEdge_min(crosses_min.first, crosses_min.second);
 
-			//直线与外圆交线
+			// The line intersects the outer circle
 			auto crosses_max = e.getLine2D().intersectCircle(m_x, m_y, m_rMax);
 			Edge2D circleEdge_max(crosses_max.first, crosses_max.second);
 
@@ -495,7 +497,7 @@ namespace ViewPointNetwork
 			return false;
 		}
 		else {
-			//看到部分也算补充边
+			// See part also counts as supplementary edge
 			return true;
 		}
 	}
@@ -504,7 +506,7 @@ namespace ViewPointNetwork
 	{
 		double s2Point0 = Point2D::distance(e.getBegPoint());
 		double s2Point1 = Point2D::distance(e.getEndPoint());
-		if (min(s2Point0, s2Point1) >= m_rMax) // 部分边
+		if (min(s2Point0, s2Point1) >= m_rMax) // Partial edge
 			return false;
 		if (max(s2Point0, s2Point1) <= m_rMin)
 			return false;

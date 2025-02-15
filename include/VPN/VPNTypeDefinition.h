@@ -18,16 +18,16 @@ namespace ViewPointNetwork
 
 	enum class JunctionType
 	{
-		JT_INIT = 0,//初始骨架点
-		JT_PATHMID = 1,//最远点
-		JT_ADDOVERLAP = 2//为保证重叠度的连接点
+		JT_INIT = 0,// Initial skeleton point
+		JT_PATHMID = 1,// The farthest point
+		JT_ADDOVERLAP = 2// To ensure the overlap of the connection point
 	};
 
 	enum PositionType
 	{
-		PT_OUTSIDE = -1,//室外
-		PT_ONWALL = 0,//墙线上
-		PT_INSIDE = 1//室内
+		PT_OUTSIDE = -1,// Outdoor
+		PT_ONWALL = 0,// Wall line
+		PT_INSIDE = 1// Indoor
 	};
 
 	enum OverlapScoreType

@@ -34,7 +34,7 @@ namespace ViewPointNetwork
 		SkeletonGraph() {};
 		SkeletonGraph(const cv::Mat& iSkeleton) :m_skeleton(iSkeleton) {};
 		SkeletonGraph& operator=(const SkeletonGraph& other) {
-			if (this != &other) {  // 防止自我赋值
+			if (this != &other) {  // Prevents self-assignment
 				m_skeleton = other.m_skeleton;
 			}
 			return *this;
@@ -87,8 +87,12 @@ namespace ViewPointNetwork
 		std::vector<std::vector<int>> connectMat;
 		std::vector<std::vector<int>> adjMat;
 		std::vector<cv::Scalar> stationColor;
-		std::vector<int> color_type; //0表示绿色初始站点，1表示最远点，2表示保证重叠度添加的点
-		//在优化图中，-1代表连接点，其他代表对应群集索引号中的点
+		std::vector<int> color_type; //0 indicates the green initial site, 
+		//1 indicates the farthest point, 
+		//and 2 indicates the point where overlap is guaranteed
+		
+		// In the optimization diagram, 
+		//-1 represents the connection point and others represent points in the corresponding cluster index number
 		std::vector<Station> stations;
 
 	private:

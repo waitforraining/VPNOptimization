@@ -40,11 +40,13 @@ namespace ViewPointNetwork
 	private:
 		int getNearstEdgeInd(const Point2D& p) const;
 		void initializeBspTree();
+		void saveBspTree(BSPNode* node, std::ofstream& outFile);
+		void saveBspToCsv();
 	private:
 		std::vector<Edge2D> m_edges;
 		std::vector<Edge2D> m_denseEdges;
 		Point2D m_centre;
-		double m_maxX, m_maxY;//ÇøÓòµÄ¿í¡¢¸ß
+		double m_maxX, m_maxY;// Width and height of the area
 		HouseType m_type;
 		std::shared_ptr<BSPNode> m_bspRoot;
 	};

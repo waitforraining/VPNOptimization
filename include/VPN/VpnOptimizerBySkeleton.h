@@ -55,6 +55,9 @@ namespace ViewPointNetwork
 		
 		void setParameter(const OptSkelParam& param) { m_param = param; }
 		OptSkelParam getParameter() { return m_param; }
+
+		std::vector<Station> getStations() { return m_stations; }
+		House getHouse() { return m_house; }
 		
 		void writeStation2HeilosXml(const std::string& resultFile, const std::string& scenePath,
 			const std::string& platformPath, const std::string& scanner, const std::string& surveyName = "test");
@@ -97,7 +100,7 @@ namespace ViewPointNetwork
 
 		std::vector<Edge2D> m_vecEdges;
 		std::vector<Edge2D> m_denseEdges;
-		std::vector<Edge2D> m_offestVecEdges;//如果室外扫描，偏移量不为0
+		std::vector<Edge2D> m_offestVecEdges;// If the scan is performed outdoors, the offset is not 0
 
 		std::vector<Station> m_stations;
 		std::unordered_map<int, std::vector<int>> m_groupStationUMap;

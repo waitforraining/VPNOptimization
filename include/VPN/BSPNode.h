@@ -27,7 +27,7 @@ namespace ViewPointNetwork
 		BSPNode* frontNode;
 		BSPNode* backNode;
 	private:
-		std::string m_name; //遍历顺序 f fb fbb fbbf fbbfb 以此累加
+		std::string m_name; // Traversal order ffb fbb fbbf fbbfb and so on
 		Edge2D m_edge;
 		double m_minScan;
 		double m_minwall; 

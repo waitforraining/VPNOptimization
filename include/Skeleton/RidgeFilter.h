@@ -18,8 +18,6 @@ namespace ViewPointNetwork
 		RidgeDetection(int ddepth = CV_32FC1, int dx = 1, int dy = 1, int ksize = 3, int out_dtype = CV_8UC1,
 			double scale = 1, double delta = 0, int borderType = cv::BorderTypes::BORDER_DEFAULT);
 
-		//利用opencv绘制骨架线图像
-		// 处理图像并提取骨架
 		cv::Mat getRidge(House& house, HeatMap& heat,
 			cv::Mat image, const std::string& outresultpath,
 			int distType, int markSize, int HouseType = HT_Indoor);

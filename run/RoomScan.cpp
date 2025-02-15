@@ -13,8 +13,9 @@ int main(int argc, char** argv)
 	VPN::OptSkelParam param;
 	//PauseArguments(argc, argv, houseName, param);
 	std::vector<VPN::Edge2D> edges;
-	VPN::readEdges("C:\\Users\\3DV\\Desktop\\ourresult\\Zeng_SceneA\\Zeng_SceneA", edges, "Dxf");
-	VPN::writeEdges("C:\\Users\\3DV\\Desktop\\ourresult\\Zeng_SceneA\\test", edges, "dxf");
+	
+	VPN::readEdges("../data/Zeng_SceneA/Zeng_Scene", edges, "dxf");
+	VPN::writeEdges("test", edges, "dxf");
 
 	//VPN::VpnOptimizerBySkeleton optimizer(houseName, param);
 	//optimizer.doOptimize();

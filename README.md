@@ -16,8 +16,8 @@
 ### gdal 与 googletest 已放入项目中 
 
 ### 设置环境变量
-- gdal 写出 dxf 需要读取 `header.dxf` 和 `trailer.dxf`  
-- 在 Windows 中设置 `GDAL_DATA` 指向这两个文件的目录
+- gdal 写出 dxf 需要读取 `header.dxf` 和 `trailer.dxf`  在 Windows 的PATH中设置 `GDAL_DATA` 指向这两个文件的目录
+- 将dll路径`thirdParty\gdal\dll` 加入PATH中
 
 ---
 

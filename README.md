@@ -24,7 +24,7 @@
 ## 基于启发式算法的扫描站点规划
 
 <div align="center">
-  <img src="figure1.png" alt="Image description" />
+  <img src="assets/figure1.png" alt="Image description" />
 </div>
 
 我们通过引入一种基于可见性场（VF）概念的新型启发式方法来应对静态 LiDAR 应用中的挑战。**VF** 捕捉了 LiDAR 特有的可见性特征，包括范围和入射角度的限制，从而显著降低了计算复杂性。通过聚焦于 VF 中的关键点（如中轴线和连接点），我们有效地将优化空间从二维简化到一维，促进了最小化、完全连接的视点网络的构建，实现了全面覆盖并减少了冗余。
@@ -36,7 +36,7 @@
 4. 通过 **启发式算法** 进行优化
 
 <div align="center">
-  <img src="figure1.png" alt="Image description" />
+  <img src="assets/figure2.png" alt="Image description" />
 </div>
 
 
